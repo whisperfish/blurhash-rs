@@ -1,50 +1,49 @@
-#![allow(non_snake_case)]
 #![allow(dead_code)]
 
 use super::base83::decode as decode83;
-use super::utils::{linearTosRGB, sRGBToLinear, signPow};
+use super::utils::{linear_to_srgb, sign_pow, srgb_to_linear};
 use std::f64::consts::PI;
 
-fn validateBlurhash(blurhash: &str) -> (usize, usize) {
+fn validate_blurhash(blurhash: &str) -> (usize, usize) {
     if blurhash.len() < 6 {
         panic!("The blurhash string must be at least 6 characters");
     }
 
-    let sizeFlag = decode83(&blurhash.chars().nth(0).unwrap().to_string());
-    let numY = (f64::floor(sizeFlag as f64 / 9.) + 1.) as usize;
-    let numX = (sizeFlag % 9) + 1;
+    let size_flag = decode83(&blurhash.chars().nth(0).unwrap().to_string());
+    let num_y = (f64::floor(size_flag as f64 / 9.) + 1.) as usize;
+    let num_x = (size_flag % 9) + 1;
 
-    if blurhash.len() != 4 + 2 * numX * numY {
+    if blurhash.len() != 4 + 2 * num_x * num_y {
         panic!(
             "blurhash length mismatch: length is {} but it should be {}",
             blurhash.len(),
-            (4 + 2 * numX * numY)
+            (4 + 2 * num_x * num_y)
         );
     }
 
-    (numX, numY)
+    (num_x, num_y)
 }
 
 fn decode(blurhash: &str, width: u32, height: u32, punch: u32) -> Vec<u8> {
-    let (numX, numY) = validateBlurhash(blurhash);
+    let (num_x, num_y) = validate_blurhash(blurhash);
 
-    let quantisedMaximumValue = decode83(&blurhash.chars().nth(1).unwrap().to_string());
-    let maximumValue = (quantisedMaximumValue + 1) as f64 / 166.;
+    let quantised_maximum_value = decode83(&blurhash.chars().nth(1).unwrap().to_string());
+    let maximum_value = (quantised_maximum_value + 1) as f64 / 166.;
 
-    let mut colors = vec![vec![0.0; 3]; numX * numY];
+    let mut colors = vec![vec![0.0; 3]; num_x * num_y];
 
     for i in 0..colors.len() {
         if i == 0 {
             let value = decode83(&blurhash[2..6]);
-            colors[i as usize] = decodeDC(value as u32);
+            colors[i as usize] = decode_dc(value as u32);
         } else {
             let value = decode83(&blurhash[4 + i * 2..6 + i * 2]);
-            colors[i as usize] = decodeAC(value as u32, maximumValue * punch as f64);
+            colors[i as usize] = decode_ac(value as u32, maximum_value * punch as f64);
         }
     }
 
-    let bytesPerRow = width * 4;
-    let mut pixels = vec![0; (bytesPerRow * height) as usize];
+    let bytes_per_row = width * 4;
+    let mut pixels = vec![0; (bytes_per_row * height) as usize];
 
     for y in 0..height {
         for x in 0..width {
@@ -52,11 +51,11 @@ fn decode(blurhash: &str, width: u32, height: u32, punch: u32) -> Vec<u8> {
             let mut g = 0.;
             let mut b = 0.;
 
-            for j in 0..numY {
-                for i in 0..numX {
+            for j in 0..num_y {
+                for i in 0..num_x {
                     let basis = f64::cos((PI * x as f64 * i as f64) / width as f64)
                         * f64::cos((PI * y as f64 * j as f64) / height as f64);
-                    let color = &colors[i + j * numX as usize];
+                    let color = &colors[i + j * num_x as usize];
 
                     r += color[0] * basis;
                     g += color[1] * basis;
@@ -64,35 +63,39 @@ fn decode(blurhash: &str, width: u32, height: u32, punch: u32) -> Vec<u8> {
                 }
             }
 
-            let intR = linearTosRGB(r);
-            let intG = linearTosRGB(g);
-            let intB = linearTosRGB(b);
+            let int_r = linear_to_srgb(r);
+            let int_g = linear_to_srgb(g);
+            let int_b = linear_to_srgb(b);
 
-            pixels[(4 * x + 0 + y * bytesPerRow) as usize] = intR as u8;
-            pixels[(4 * x + 1 + y * bytesPerRow) as usize] = intG as u8;
-            pixels[(4 * x + 2 + y * bytesPerRow) as usize] = intB as u8;
-            pixels[(4 * x + 3 + y * bytesPerRow) as usize] = 255 as u8;
+            pixels[(4 * x + 0 + y * bytes_per_row) as usize] = int_r as u8;
+            pixels[(4 * x + 1 + y * bytes_per_row) as usize] = int_g as u8;
+            pixels[(4 * x + 2 + y * bytes_per_row) as usize] = int_b as u8;
+            pixels[(4 * x + 3 + y * bytes_per_row) as usize] = 255 as u8;
         }
     }
     pixels
 }
 
-fn decodeDC(value: u32) -> Vec<f64> {
-    let intR = value >> 16;
-    let intG = (value >> 8) & 255;
-    let intB = value & 255;
-    vec![sRGBToLinear(intR), sRGBToLinear(intG), sRGBToLinear(intB)]
+fn decode_dc(value: u32) -> Vec<f64> {
+    let int_r = value >> 16;
+    let int_g = (value >> 8) & 255;
+    let int_b = value & 255;
+    vec![
+        srgb_to_linear(int_r),
+        srgb_to_linear(int_g),
+        srgb_to_linear(int_b),
+    ]
 }
 
-fn decodeAC(value: u32, maximumValue: f64) -> Vec<f64> {
-    let quantR = f64::floor(value as f64 / (19. * 19.));
-    let quantG = f64::floor(value as f64 / 19.) % 19.;
-    let quantB = value as f64 % 19.;
+fn decode_ac(value: u32, maximum_value: f64) -> Vec<f64> {
+    let quant_r = f64::floor(value as f64 / (19. * 19.));
+    let quant_g = f64::floor(value as f64 / 19.) % 19.;
+    let quant_b = value as f64 % 19.;
 
     let rgb = vec![
-        signPow((quantR - 9.) / 9., 2.0) * maximumValue,
-        signPow((quantG - 9.) / 9., 2.0) * maximumValue,
-        signPow((quantB - 9.) / 9., 2.0) * maximumValue,
+        sign_pow((quant_r - 9.) / 9., 2.0) * maximum_value,
+        sign_pow((quant_g - 9.) / 9., 2.0) * maximum_value,
+        sign_pow((quant_b - 9.) / 9., 2.0) * maximum_value,
     ];
 
     rgb
