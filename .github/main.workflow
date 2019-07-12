@@ -18,4 +18,5 @@ action "Release" {
   uses = "icepuma/rust-action@master"
   needs = ["Tag"]
   args = "cargo login $CARGO_TOKEN && cargo release"
+  secrets = ["CARGO_TOKEN"]
 }
