@@ -5,8 +5,8 @@ documentation = "https://docs.rs/blurhash"
 repository = "https://github.com/Raincal/blurhash-rs"
 readme = "README.md"
 keywords = [ "blurhash", "image" ]
-license = "MIT"
-version = "0.1.0"
+license = "Apache-2.0/MIT"
+version = "0.1.1"
 authors = ["Raincal <cyj94228@gmail.com>"]
 edition = "2018"
 
