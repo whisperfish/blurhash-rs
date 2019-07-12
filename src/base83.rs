@@ -9,7 +9,7 @@ static CHARACTORS: [char; 83] = [
 pub fn encode(value: u32, length: u32) -> String {
     let mut result = String::new();
 
-    for i in 1..length + 1 {
+    for i in 1..=length {
         let digit: u32 = (value / u32::pow(83, length - i)) % 83;
         result.push_str(&CHARACTORS[digit as usize].to_string());
     }

@@ -12,11 +12,9 @@ pub fn decode(value: u32) -> [f32; 3] {
     let int_g = (value >> 8) & 255;
     let int_b = value & 255;
 
-    let rgb = [
+    [
         srgb_to_linear(int_r),
         srgb_to_linear(int_g),
         srgb_to_linear(int_b),
-    ];
-
-    rgb
+    ]
 }

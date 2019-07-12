@@ -30,13 +30,7 @@ use std::f32::consts::PI;
 pub use util::{linear_to_srgb, srgb_to_linear};
 
 /// Calculates the blurhash for an image using the given x and y component counts.
-pub fn encode(
-    components_x: u32,
-    components_y: u32,
-    width: u32,
-    height: u32,
-    rgb: &Vec<u8>,
-) -> String {
+pub fn encode(components_x: u32, components_y: u32, width: u32, height: u32, rgb: &[u8]) -> String {
     if components_x < 1 || components_x > 9 || components_y < 1 || components_y > 9 {
         panic!("BlurHash must have between 1 and 9 components");
     }
@@ -59,7 +53,7 @@ pub fn encode(
     blurhash.push_str(&base83::encode(size_flag, 1));
 
     let maximum_value: f32;
-    if ac.len() > 0 {
+    if !ac.is_empty() {
         let mut actualmaximum_value = 0.0;
         for i in 0..components_y * components_x - 1 {
             actualmaximum_value = f32::max(ac[i as usize][0], actualmaximum_value);
@@ -96,7 +90,7 @@ fn multiply_basis_function(
     component_y: u32,
     width: u32,
     height: u32,
-    rgb: &Vec<u8>,
+    rgb: &[u8],
 ) -> [f32; 3] {
     let mut r = 0.;
     let mut g = 0.;
@@ -112,9 +106,9 @@ fn multiply_basis_function(
         for x in 0..width {
             let basis = f32::cos(PI * component_x as f32 * x as f32 / width as f32)
                 * f32::cos(PI * component_y as f32 * y as f32 / height as f32);
-            r += basis * srgb_to_linear(rgb[(4 * x + 0 + y * bytes_per_row) as usize] as u32);
-            g += basis * srgb_to_linear(rgb[(4 * x + 1 + y * bytes_per_row) as usize] as u32);
-            b += basis * srgb_to_linear(rgb[(4 * x + 2 + y * bytes_per_row) as usize] as u32);
+            r += basis * srgb_to_linear(u32::from(rgb[(4 * x + y * bytes_per_row) as usize]));
+            g += basis * srgb_to_linear(u32::from(rgb[(4 * x + 1 + y * bytes_per_row) as usize]));
+            b += basis * srgb_to_linear(u32::from(rgb[(4 * x + 2 + y * bytes_per_row) as usize]));
         }
     }
 
@@ -168,7 +162,7 @@ pub fn decode(blurhash: &str, width: u32, height: u32, punch: f32) -> Vec<u8> {
             let int_g = linear_to_srgb(pixel[1]);
             let int_b = linear_to_srgb(pixel[2]);
 
-            pixels[(4 * x + 0 + y * bytes_per_row) as usize] = int_r as u8;
+            pixels[(4 * x + y * bytes_per_row) as usize] = int_r as u8;
             pixels[(4 * x + 1 + y * bytes_per_row) as usize] = int_g as u8;
             pixels[(4 * x + 2 + y * bytes_per_row) as usize] = int_b as u8;
             pixels[(4 * x + 3 + y * bytes_per_row) as usize] = 255 as u8;

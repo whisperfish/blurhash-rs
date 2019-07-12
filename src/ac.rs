@@ -31,11 +31,9 @@ pub fn decode(value: u32, maximum_value: f32) -> [f32; 3] {
     let quant_g = f32::floor(value as f32 / 19.) % 19.;
     let quant_b = value as f32 % 19.;
 
-    let rgb = [
+    [
         sign_pow((quant_r - 9.) / 9., 2.0) * maximum_value,
         sign_pow((quant_g - 9.) / 9., 2.0) * maximum_value,
         sign_pow((quant_b - 9.) / 9., 2.0) * maximum_value,
-    ];
-
-    rgb
+    ]
 }
