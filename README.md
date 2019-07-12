@@ -1,5 +1,9 @@
 # blurhash-rs
 
+![Crates.io](https://img.shields.io/crates/v/blurhash.svg?logo=blurhash&style=flat-square)
+[![Actions Status](https://wdp9fww0r9.execute-api.us-west-2.amazonaws.com/production/badge/Raincal/blurhash-rs?style=flat-square)](https://wdp9fww0r9.execute-api.us-west-2.amazonaws.com/production/results/Raincal/blurhash-rs)
+![Crates.io](https://img.shields.io/crates/l/blurhash.svg?logo=blurhash&style=flat-square)
+
 > A pure Rust implementation of [Blurhash](https://github.com/woltapp/blurhash).
 
 Blurhash is an algorithm written by [Dag Ågren](https://github.com/DagAgren) for [Wolt (woltapp/blurhash)](https://github.com/woltapp/blurhash) that encodes an image into a short (~20-30 byte) ASCII string. When you decode the string back into an image, you get a gradient of colors that represent the original image. This can be useful for scenarios where you want an image placeholder before loading, or even to censor the contents of an image [a la Mastodon](https://blog.joinmastodon.org/2019/05/improving-support-for-adult-content-on-mastodon/).
