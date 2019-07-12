@@ -36,13 +36,13 @@ mod tests {
 
     #[test]
     fn encode83() {
-        let v = decode("~$");
-        assert_eq!(v, 6869);
+        let str = encode(6869, 2);
+        assert_eq!(str, "~$");
     }
 
     #[test]
     fn decode83() {
-        let str = encode(6869, 2);
-        assert_eq!(str, "~$");
+        let v = decode("~$");
+        assert_eq!(v, 6869);
     }
 }

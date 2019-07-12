@@ -1,8 +1,16 @@
 [package]
 name = "blurhash"
+description = "A pure Rust implementation of blurhash"
+documentation = "https://docs.rs/blurhash"
+repository = "https://github.com/Raincal/blurhash-rs"
+readme = "README.md"
+keywords = [ "blurhash", "image" ]
+license = "MIT"
 version = "0.1.0"
 authors = ["Raincal <cyj94228@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+
+[dev-dependencies]
 image = "0.21.2"
