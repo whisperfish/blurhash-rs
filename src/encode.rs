@@ -1,5 +1,5 @@
 use super::base83::encode as encode83;
-use super::utils::{linear_to_srgb, srgb_to_linear, sign_pow};
+use super::utils::{linear_to_srgb, sign_pow, srgb_to_linear};
 use std::f64::consts::PI;
 
 pub fn encode(
@@ -13,7 +13,7 @@ pub fn encode(
         panic!("BlurHash must have between 1 and 9 components");
     }
 
-    let mut factors: Vec<Vec<f64>> = Vec::new();
+    let mut factors: Vec<[f64; 3]> = Vec::new();
 
     for y in 0..components_y {
         for x in 0..components_x {
@@ -22,7 +22,7 @@ pub fn encode(
         }
     }
 
-    let dc = &factors[0];
+    let dc = factors[0];
     let ac = &factors[1..];
 
     let mut hash = String::new();
@@ -50,10 +50,10 @@ pub fn encode(
         hash.push_str(&encode83(0, 1));
     }
 
-    hash.push_str(&encode83(encode_dc(&dc), 4));
+    hash.push_str(&encode83(encode_dc(dc), 4));
 
     for i in 0..components_y * components_x - 1 {
-        hash.push_str(&encode83(encode_ac(&ac[i as usize], maximum_value), 2));
+        hash.push_str(&encode83(encode_ac(ac[i as usize], maximum_value), 2));
     }
 
     hash
@@ -65,7 +65,7 @@ fn multiply_basis_function(
     width: u32,
     height: u32,
     rgb: &Vec<u8>,
-) -> Vec<f64> {
+) -> [f64; 3] {
     let mut r = 0.;
     let mut g = 0.;
     let mut b = 0.;
@@ -88,19 +88,17 @@ fn multiply_basis_function(
 
     let scale = normalisation / (width * height) as f64;
 
-    let result = vec![r * scale, g * scale, b * scale];
-
-    result
+    [r * scale, g * scale, b * scale]
 }
 
-fn encode_dc(value: &Vec<f64>) -> u32 {
+fn encode_dc(value: [f64; 3]) -> u32 {
     let rounded_r = linear_to_srgb(value[0]);
     let rounded_g = linear_to_srgb(value[1]);
     let rounded_b = linear_to_srgb(value[2]);
     (rounded_r << 16) + (rounded_g << 8) + rounded_b
 }
 
-fn encode_ac(value: &Vec<f64>, maximum_value: f64) -> u32 {
+fn encode_ac(value: [f64; 3], maximum_value: f64) -> u32 {
     let quant_r = i32::max(
         0,
         i32::min(
@@ -127,7 +125,7 @@ fn encode_ac(value: &Vec<f64>, maximum_value: f64) -> u32 {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::encode;
     use image::GenericImageView;
 

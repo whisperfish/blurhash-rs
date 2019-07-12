@@ -30,7 +30,7 @@ fn decode(blurhash: &str, width: u32, height: u32, punch: u32) -> Vec<u8> {
     let quantised_maximum_value = decode83(&blurhash.chars().nth(1).unwrap().to_string());
     let maximum_value = (quantised_maximum_value + 1) as f64 / 166.;
 
-    let mut colors = vec![vec![0.0; 3]; num_x * num_y];
+    let mut colors = vec![[0.0; 3]; num_x * num_y];
 
     for i in 0..colors.len() {
         if i == 0 {
@@ -76,23 +76,26 @@ fn decode(blurhash: &str, width: u32, height: u32, punch: u32) -> Vec<u8> {
     pixels
 }
 
-fn decode_dc(value: u32) -> Vec<f64> {
+fn decode_dc(value: u32) -> [f64; 3] {
     let int_r = value >> 16;
     let int_g = (value >> 8) & 255;
     let int_b = value & 255;
-    vec![
+
+    let rgb = [
         srgb_to_linear(int_r),
         srgb_to_linear(int_g),
         srgb_to_linear(int_b),
-    ]
+    ];
+
+    rgb
 }
 
-fn decode_ac(value: u32, maximum_value: f64) -> Vec<f64> {
+fn decode_ac(value: u32, maximum_value: f64) -> [f64; 3] {
     let quant_r = f64::floor(value as f64 / (19. * 19.));
     let quant_g = f64::floor(value as f64 / 19.) % 19.;
     let quant_b = value as f64 % 19.;
 
-    let rgb = vec![
+    let rgb = [
         sign_pow((quant_r - 9.) / 9., 2.0) * maximum_value,
         sign_pow((quant_g - 9.) / 9., 2.0) * maximum_value,
         sign_pow((quant_b - 9.) / 9., 2.0) * maximum_value,
@@ -102,7 +105,7 @@ fn decode_ac(value: u32, maximum_value: f64) -> Vec<f64> {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::decode;
     use image::GenericImageView;
     use image::{save_buffer, RGBA};
