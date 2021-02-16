@@ -6,11 +6,11 @@ repository = "https://github.com/Raincal/blurhash-rs"
 readme = "README.md"
 keywords = [ "blurhash", "image" ]
 license = "Apache-2.0/MIT"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Raincal <cyj94228@gmail.com>"]
 edition = "2018"
 
 [dependencies]
 
 [dev-dependencies]
-image = "0.21.2"
+image = "0.23.13"
