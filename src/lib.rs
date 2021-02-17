@@ -56,9 +56,9 @@ pub fn encode(components_x: u32, components_y: u32, width: u32, height: u32, rgb
     if !ac.is_empty() {
         let mut actualmaximum_value = 0.0;
         for i in 0..components_y * components_x - 1 {
-            actualmaximum_value = f32::max(ac[i as usize][0], actualmaximum_value);
-            actualmaximum_value = f32::max(ac[i as usize][1], actualmaximum_value);
-            actualmaximum_value = f32::max(ac[i as usize][2], actualmaximum_value);
+            actualmaximum_value = f32::max(f32::abs(ac[i as usize][0]), actualmaximum_value);
+            actualmaximum_value = f32::max(f32::abs(ac[i as usize][1]), actualmaximum_value);
+            actualmaximum_value = f32::max(f32::abs(ac[i as usize][2]), actualmaximum_value);
         }
 
         let quantised_maximum_value = f32::max(
