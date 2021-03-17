@@ -195,16 +195,16 @@ fn components(blurhash: &str) -> (usize, usize) {
 mod tests {
     use super::{decode, encode};
     use image::GenericImageView;
-    use image::{save_buffer, RGBA};
+    use image::{save_buffer, ColorType::Rgba8};
 
     #[test]
     fn decode_blurhash() {
         let img = image::open("octocat.png").unwrap();
         let (width, height) = img.dimensions();
 
-        let blurhash = encode(4, 3, width, height, &img.to_rgba().into_vec());
+        let blurhash = encode(4, 3, width, height, &img.to_rgba8().into_vec());
         let img = decode(&blurhash, width, height, 1.0);
-        save_buffer("out.png", &img, width, height, RGBA(8)).unwrap();
+        save_buffer("out.png", &img, width, height, Rgba8).unwrap();
 
         assert_eq!(img[0..5], [45, 1, 56, 255, 45]);
     }
