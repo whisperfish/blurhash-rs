@@ -22,8 +22,8 @@ pub fn decode(str: &str) -> usize {
 
     let str: Vec<char> = str.chars().collect();
 
-    for i in 0..str.len() {
-        let digit: usize = CHARACTORS.iter().position(|&r| r == str[i]).unwrap();
+    for c in str {
+        let digit: usize = CHARACTORS.iter().position(|&r| r == c).unwrap();
         value = value * 83 + digit;
     }
 

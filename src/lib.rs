@@ -31,7 +31,7 @@ pub use util::{linear_to_srgb, srgb_to_linear};
 
 /// Calculates the blurhash for an image using the given x and y component counts.
 pub fn encode(components_x: u32, components_y: u32, width: u32, height: u32, rgb: &[u8]) -> String {
-    if components_x < 1 || components_x > 9 || components_y < 1 || components_y > 9 {
+    if !(1..=9).contains(&components_x) || !(1..=9).contains(&components_y) {
         panic!("BlurHash must have between 1 and 9 components");
     }
 
@@ -165,7 +165,7 @@ pub fn decode(blurhash: &str, width: u32, height: u32, punch: f32) -> Vec<u8> {
             pixels[(4 * x + y * bytes_per_row) as usize] = int_r as u8;
             pixels[(4 * x + 1 + y * bytes_per_row) as usize] = int_g as u8;
             pixels[(4 * x + 2 + y * bytes_per_row) as usize] = int_b as u8;
-            pixels[(4 * x + 3 + y * bytes_per_row) as usize] = 255 as u8;
+            pixels[(4 * x + 3 + y * bytes_per_row) as usize] = 255u8;
         }
     }
     pixels
@@ -176,7 +176,7 @@ fn components(blurhash: &str) -> (usize, usize) {
         panic!("The blurhash string must be at least 6 characters");
     }
 
-    let size_flag = base83::decode(&blurhash.chars().nth(0).unwrap().to_string());
+    let size_flag = base83::decode(&blurhash[0..1]);
     let num_y = (f32::floor(size_flag as f32 / 9.) + 1.) as usize;
     let num_x = (size_flag % 9) + 1;
 
