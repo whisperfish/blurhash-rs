@@ -4,11 +4,11 @@
 //!
 //! ```
 //! use blurhash::encode;
-//! use image::GenericImageView;
+//! use image::{GenericImageView, EncodableLayout};
 //!
 //! let img = image::open("octocat.png").unwrap();
 //! let (width, height) = img.dimensions();
-//! let blurhash = encode(4, 3, width, height, &img.to_rgba().into_vec());
+//! let blurhash = encode(4, 3, width, height, img.to_rgba().as_bytes()).unwrap();
 //!
 //! assert_eq!(blurhash, "LBAdAqof00WCqZj[PDay0.WB}pof");
 //! ```
@@ -24,22 +24,31 @@
 mod ac;
 mod base83;
 mod dc;
+mod error;
 mod util;
 
+pub use error::Error;
+
 use std::f32::consts::PI;
-pub use util::{linear_to_srgb, srgb_to_linear};
+use util::{linear_to_srgb, srgb_to_linear};
 
 /// Calculates the blurhash for an image using the given x and y component counts.
-pub fn encode(components_x: u32, components_y: u32, width: u32, height: u32, rgb: &[u8]) -> String {
-    if components_x < 1 || components_x > 9 || components_y < 1 || components_y > 9 {
-        panic!("BlurHash must have between 1 and 9 components");
+pub fn encode(
+    components_x: u32,
+    components_y: u32,
+    width: u32,
+    height: u32,
+    rgba_image: &[u8],
+) -> Result<String, Error> {
+    if !(1..=9).contains(&components_x) || !(1..=9).contains(&components_y) {
+        return Err(Error::ComponentsOutOfRange);
     }
 
     let mut factors: Vec<[f32; 3]> = Vec::new();
 
     for y in 0..components_y {
         for x in 0..components_x {
-            let factor = multiply_basis_function(x, y, width, height, rgb);
+            let factor = multiply_basis_function(x, y, width, height, rgba_image);
             factors.push(factor);
         }
     }
@@ -82,7 +91,7 @@ pub fn encode(components_x: u32, components_y: u32, width: u32, height: u32, rgb
         ));
     }
 
-    blurhash
+    Ok(blurhash)
 }
 
 fn multiply_basis_function(
@@ -121,20 +130,20 @@ fn multiply_basis_function(
 ///
 /// The punch parameter can be used to de- or increase the contrast of the
 /// resulting image.
-pub fn decode(blurhash: &str, width: u32, height: u32, punch: f32) -> Vec<u8> {
-    let (num_x, num_y) = components(blurhash);
+pub fn decode(blurhash: &str, width: u32, height: u32, punch: f32) -> Result<Vec<u8>, Error> {
+    let (num_x, num_y) = components(blurhash)?;
 
-    let quantised_maximum_value = base83::decode(&blurhash.chars().nth(1).unwrap().to_string());
+    let quantised_maximum_value = base83::decode(&blurhash[1..2])?;
     let maximum_value = (quantised_maximum_value + 1) as f32 / 166.;
 
     let mut colors = vec![[0.; 3]; num_x * num_y];
 
     for i in 0..colors.len() {
         if i == 0 {
-            let value = base83::decode(&blurhash[2..6]);
+            let value = base83::decode(&blurhash[2..6])?;
             colors[i as usize] = dc::decode(value as u32);
         } else {
-            let value = base83::decode(&blurhash[4 + i * 2..6 + i * 2]);
+            let value = base83::decode(&blurhash[4 + i * 2..6 + i * 2])?;
             colors[i as usize] = ac::decode(value as u32, maximum_value * punch);
         }
     }
@@ -165,46 +174,46 @@ pub fn decode(blurhash: &str, width: u32, height: u32, punch: f32) -> Vec<u8> {
             pixels[(4 * x + y * bytes_per_row) as usize] = int_r as u8;
             pixels[(4 * x + 1 + y * bytes_per_row) as usize] = int_g as u8;
             pixels[(4 * x + 2 + y * bytes_per_row) as usize] = int_b as u8;
-            pixels[(4 * x + 3 + y * bytes_per_row) as usize] = 255 as u8;
+            pixels[(4 * x + 3 + y * bytes_per_row) as usize] = 255u8;
         }
     }
-    pixels
+    Ok(pixels)
 }
 
-fn components(blurhash: &str) -> (usize, usize) {
+fn components(blurhash: &str) -> Result<(usize, usize), Error> {
     if blurhash.len() < 6 {
-        panic!("The blurhash string must be at least 6 characters");
+        return Err(Error::HashTooShort);
     }
 
-    let size_flag = base83::decode(&blurhash.chars().nth(0).unwrap().to_string());
+    let size_flag = base83::decode(&blurhash[0..1])?;
     let num_y = (f32::floor(size_flag as f32 / 9.) + 1.) as usize;
     let num_x = (size_flag % 9) + 1;
 
-    if blurhash.len() != 4 + 2 * num_x * num_y {
-        panic!(
-            "blurhash length mismatch: length is {} but it should be {}",
-            blurhash.len(),
-            (4 + 2 * num_x * num_y)
-        );
+    let expected = 4 + 2 * num_x * num_y;
+    if blurhash.len() != expected {
+        return Err(Error::LengthMismatch {
+            expected,
+            actual: blurhash.len(),
+        });
     }
 
-    (num_x, num_y)
+    Ok((num_x, num_y))
 }
 
 #[cfg(test)]
 mod tests {
     use super::{decode, encode};
-    use image::GenericImageView;
-    use image::{save_buffer, RGBA};
+    use image::{save_buffer, ColorType::Rgba8};
+    use image::{EncodableLayout, GenericImageView};
 
     #[test]
     fn decode_blurhash() {
         let img = image::open("octocat.png").unwrap();
         let (width, height) = img.dimensions();
 
-        let blurhash = encode(4, 3, width, height, &img.to_rgba().into_vec());
-        let img = decode(&blurhash, width, height, 1.0);
-        save_buffer("out.png", &img, width, height, RGBA(8)).unwrap();
+        let blurhash = encode(4, 3, width, height, img.to_rgba8().as_bytes()).unwrap();
+        let img = decode(&blurhash, width, height, 1.0).unwrap();
+        save_buffer("out.png", &img, width, height, Rgba8).unwrap();
 
         assert_eq!(img[0..5], [45, 1, 56, 255, 45]);
     }
