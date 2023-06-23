@@ -182,10 +182,12 @@ pub fn decode_into(
             let int_g = linear_to_srgb(pixel[1]);
             let int_b = linear_to_srgb(pixel[2]);
 
-            pixels[(4 * x + y * bytes_per_row) as usize] = int_r as u8;
-            pixels[(4 * x + 1 + y * bytes_per_row) as usize] = int_g as u8;
-            pixels[(4 * x + 2 + y * bytes_per_row) as usize] = int_b as u8;
-            pixels[(4 * x + 3 + y * bytes_per_row) as usize] = 255u8;
+            let pixels = &mut pixels[((4 * x + y * bytes_per_row) as usize)..][..4];
+
+            pixels[0] = int_r as u8;
+            pixels[1] = int_g as u8;
+            pixels[2] = int_b as u8;
+            pixels[3] = 255u8;
         }
     }
     Ok(())
