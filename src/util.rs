@@ -16,14 +16,6 @@ pub fn srgb_to_linear(value: u32) -> f32 {
     
     return SRGB_LOOKUP[value as usize]
     
-    //let v = value as f32 / 255.;
-    //if v <= 0.04045 {
-    //    v / 12.92
-    //} else {
-        //dbg!(&value, pow((v + 0.055) / 1.055, 2.4));
-        //pow((v + 0.055) / 1.055, 2.4)
-        
-    //}
 }
 
 fn sign(n: f32) -> f32 {
