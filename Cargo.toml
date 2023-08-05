@@ -8,9 +8,11 @@ keywords = ["blurhash", "image"]
 license = "Apache-2.0/MIT"
 version = "0.1.1"
 authors = ["Raincal <cyj94228@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
+#fastapprox = "0.3.0"
+#rayon = "1.7.0"
 
 [dev-dependencies]
 image = "0.23"
