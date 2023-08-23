@@ -50,21 +50,21 @@ jobs:
         if: ${{ !matrix.coverage }}
         with:
           command: test
-          args: --all-targets --no-fail-fast
+          args: --all-targets --no-fail-fast --all-features
 
       - name: Run doc tests
         uses: actions-rs/cargo@v1
         if: ${{ !matrix.coverage }}
         with:
           command: test
-          args: --doc --no-fail-fast
+          args: --doc --no-fail-fast --all-features
 
       - name: Run tests
         uses: actions-rs/cargo@v1
         if: ${{ matrix.coverage }}
         with:
           command: test
-          args: --all-targets --no-fail-fast
+          args: --all-targets --no-fail-fast --all-features
         env:
           CARGO_INCREMENTAL: '0'
           RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
