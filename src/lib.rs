@@ -10,7 +10,7 @@
 //! let (width, height) = img.dimensions();
 //! let blurhash = encode(4, 3, width, height, img.to_rgba8().as_bytes()).unwrap();
 //!
-//! assert_eq!(blurhash, "LBAdAqof00WCqZj[PDay0.WB}pof");
+//! assert_eq!(blurhash, "LNAdAqj[00aymkj[TKay9}ay-Sj[");
 //! ```
 //!
 //! ### Decoding
