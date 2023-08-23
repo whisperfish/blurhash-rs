@@ -153,10 +153,10 @@ pub fn decode_into(
     for i in 0..colors.len() {
         if i == 0 {
             let value = base83::decode(&blurhash[2..6])?;
-            colors[i as usize] = dc::decode(value as u32);
+            colors[i] = dc::decode(value as u32);
         } else {
             let value = base83::decode(&blurhash[4 + i * 2..6 + i * 2])?;
-            colors[i as usize] = ac::decode(value as u32, maximum_value * punch);
+            colors[i] = ac::decode(value as u32, maximum_value * punch);
         }
     }
 
@@ -170,7 +170,7 @@ pub fn decode_into(
                 for i in 0..num_x {
                     let basis = f32::cos((PI * x as f32 * i as f32) / width as f32)
                         * f32::cos((PI * y as f32 * j as f32) / height as f32);
-                    let color = &colors[i + j * num_x as usize];
+                    let color = &colors[i + j * num_x];
 
                     pixel[0] += color[0] * basis;
                     pixel[1] += color[1] * basis;
