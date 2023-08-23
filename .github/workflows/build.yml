@@ -45,7 +45,14 @@ jobs:
           command: build
           args: --all-targets
 
-      - name: Run tests
+      - name: Run tests with default features
+        uses: actions-rs/cargo@v1
+        if: ${{ !matrix.coverage }}
+        with:
+          command: test
+          args: --all-targets --no-fail-fast
+
+      - name: Run tests with all features
         uses: actions-rs/cargo@v1
         if: ${{ !matrix.coverage }}
         with:
