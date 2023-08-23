@@ -1,6 +1,6 @@
 # blurhash-rs
 
-![CI Build](https://github.com/whisperfish/blurhash/workflows/Build/badge.svg)
+![CI Build](https://github.com/whisperfish/blurhash-rs/workflows/Build/badge.svg)
 [![Crates.io](https://img.shields.io/crates/v/blurhash.svg)](https://crates.io/crates/blurhash)
 [![Crates.io](https://img.shields.io/crates/l/blurhash.svg)](https://crates.io/crates/blurhash)
 
