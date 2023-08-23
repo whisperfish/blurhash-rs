@@ -1,3 +1,5 @@
+include!(concat!(env!("OUT_DIR"), "/srgb_lookup.rs"));
+
 /// linear 0.0-1.0 floating point to srgb 0-255 integer conversion.
 pub fn linear_to_srgb(value: f32) -> u32 {
     let v = f32::max(0., f32::min(1., value));
@@ -10,12 +12,7 @@ pub fn linear_to_srgb(value: f32) -> u32 {
 
 /// srgb 0-255 integer to linear 0.0-1.0 floating point conversion.
 pub fn srgb_to_linear(value: u32) -> f32 {
-    let v = value as f32 / 255.;
-    if v <= 0.04045 {
-        v / 12.92
-    } else {
-        f32::powf((v + 0.055) / 1.055, 2.4)
-    }
+    SRGB_LOOKUP[value as usize]
 }
 
 fn sign(n: f32) -> f32 {
