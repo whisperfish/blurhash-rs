@@ -223,9 +223,44 @@ fn components(blurhash: &str) -> Result<(usize, usize), Error> {
     Ok((num_x, num_y))
 }
 
+/// Calculates the blurhash for an [DynamicImage][image::DynamicImage] using the given x and y component counts.
+#[cfg(feature = "image")]
+pub fn encode_image(
+    components_x: u32,
+    components_y: u32,
+    image: &image::RgbaImage,
+) -> Result<String, Error> {
+    use image::EncodableLayout;
+    encode(
+        components_x,
+        components_y,
+        image.width(),
+        image.height(),
+        image.as_bytes(),
+    )
+}
+
+/// Decodes the given blurhash to an image of the specified size.
+///
+/// The punch parameter can be used to de- or increase the contrast of the
+/// resulting image.
+#[cfg(feature = "image")]
+pub fn decode_image(
+    blurhash: &str,
+    width: u32,
+    height: u32,
+    punch: f32,
+) -> Result<image::RgbaImage, Error> {
+    let bytes = decode(blurhash, width, height, punch)?;
+    // Save to unwrap as `decode` (if successfull) always returns a buffer of size `4 * width * height`, which is exactly
+    // the amount of bytes required to construct the `RgbaImage`.
+    let buffer = image::RgbaImage::from_raw(width, height, bytes).expect("decoded image too small");
+    Ok(buffer)
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{decode, encode};
+    use super::*;
     use image::{save_buffer, ColorType::Rgba8};
     use image::{EncodableLayout, GenericImageView};
 
@@ -251,5 +286,27 @@ mod tests {
 
         // assert_eq!(blurhash, "LFL4=pI8%foujXofRkWC.loyH?V{");
         assert_eq!(blurhash, "LNAdAqj[00aymkj[TKay9}ay-Sj[");
+    }
+
+    #[test]
+    #[cfg(feature = "image")]
+    fn test_jelly_beans_image() {
+        let img = image::open("data/octocat.png").unwrap();
+
+        let blurhash = encode_image(4, 3, &img.to_rgba8()).unwrap();
+
+        assert_eq!(blurhash, "LNAdAqj[00aymkj[TKay9}ay-Sj[");
+    }
+
+    #[test]
+    #[cfg(feature = "image")]
+    fn decode_blurhash_image() {
+        let img = image::open("data/octocat.png").unwrap();
+        let (width, height) = img.dimensions();
+
+        let blurhash = encode_image(4, 3, &img.to_rgba8()).unwrap();
+        let img = decode_image(&blurhash, width, height, 1.0).unwrap();
+
+        assert_eq!(img.as_bytes()[0..5], [1, 1, 1, 255, 1]);
     }
 }
