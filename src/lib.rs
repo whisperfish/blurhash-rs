@@ -240,6 +240,25 @@ pub fn encode_image(
     )
 }
 
+/// Calculates the blurhash for an [Pixbuf][gdk_pixbuf::Pixbuf] using the given x and y component counts.
+///
+/// Will panic if either the width or height of the image is negative.
+#[cfg(feature = "gdk-pixbuf")]
+pub fn encode_pixbuf(
+    components_x: u32,
+    components_y: u32,
+    image: &gdk_pixbuf::Pixbuf,
+) -> Result<String, Error> {
+    use std::convert::TryInto;
+    encode(
+        components_x,
+        components_y,
+        image.width().try_into().expect("non-negative width"),
+        image.height().try_into().expect("non-negative height"),
+        &image.read_pixel_bytes(),
+    )
+}
+
 /// Decodes the given blurhash to an image of the specified size.
 ///
 /// The punch parameter can be used to de- or increase the contrast of the
@@ -255,6 +274,34 @@ pub fn decode_image(
     // Save to unwrap as `decode` (if successfull) always returns a buffer of size `4 * width * height`, which is exactly
     // the amount of bytes required to construct the `RgbaImage`.
     let buffer = image::RgbaImage::from_raw(width, height, bytes).expect("decoded image too small");
+    Ok(buffer)
+}
+
+/// Decodes the given blurhash to an [Pixbuf][gdk_pixbuf::Pixbuf] of the specified size.
+///
+/// The punch parameter can be used to de- or increase the contrast of the
+/// resulting image.
+/// Will panic if the width or height does not fit in i32.
+#[cfg(feature = "gdk-pixbuf")]
+pub fn decode_pixbuf(
+    blurhash: &str,
+    width: u32,
+    height: u32,
+    punch: f32,
+) -> Result<gdk_pixbuf::Pixbuf, Error> {
+    use std::convert::TryInto;
+    let bytes = decode(blurhash, width, height, punch)?;
+    let width = width.try_into().expect("width fits in i32");
+    let height = height.try_into().expect("height fits in i32");
+    let buffer = gdk_pixbuf::Pixbuf::from_bytes(
+        &gdk_pixbuf::glib::Bytes::from_owned(bytes),
+        gdk_pixbuf::Colorspace::Rgb,
+        true,
+        8,
+        width,
+        height,
+        4 * height,
+    );
     Ok(buffer)
 }
 
@@ -308,5 +355,33 @@ mod tests {
         let img = decode_image(&blurhash, width, height, 1.0).unwrap();
 
         assert_eq!(img.as_bytes()[0..5], [1, 1, 1, 255, 1]);
+    }
+
+    #[test]
+    #[cfg(feature = "gdk-pixbuf")]
+    fn test_jelly_beans_pixbuf() {
+        let img = gdk_pixbuf::Pixbuf::from_file("data/octocat.png").unwrap();
+
+        let blurhash = encode_pixbuf(4, 3, &img).unwrap();
+
+        assert_eq!(blurhash, "LNAdAqj[00aymkj[TKay9}ay-Sj[");
+    }
+
+    #[test]
+    #[cfg(feature = "gdk-pixbuf")]
+    fn decode_blurhash_pixbuf() {
+        use std::convert::TryInto;
+        let img = gdk_pixbuf::Pixbuf::from_file("data/octocat.png").unwrap();
+
+        let blurhash = encode_pixbuf(4, 3, &img).unwrap();
+        let img = decode_pixbuf(
+            &blurhash,
+            img.width().try_into().unwrap(),
+            img.height().try_into().unwrap(),
+            1.0,
+        )
+        .unwrap();
+
+        assert_eq!(img.read_pixel_bytes()[0..5], [1, 1, 1, 255, 1]);
     }
 }
