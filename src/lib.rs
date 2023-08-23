@@ -6,7 +6,7 @@
 //! use blurhash::encode;
 //! use image::{GenericImageView, EncodableLayout};
 //!
-//! let img = image::open("octocat.png").unwrap();
+//! let img = image::open("data/octocat.png").unwrap();
 //! let (width, height) = img.dimensions();
 //! let blurhash = encode(4, 3, width, height, img.to_rgba().as_bytes()).unwrap();
 //!
@@ -231,12 +231,12 @@ mod tests {
 
     #[test]
     fn decode_blurhash() {
-        let img = image::open("octocat.png").unwrap();
+        let img = image::open("data/octocat.png").unwrap();
         let (width, height) = img.dimensions();
 
         let blurhash = encode(4, 3, width, height, img.to_rgba8().as_bytes()).unwrap();
         let img = decode(&blurhash, width, height, 1.0).unwrap();
-        save_buffer("out.png", &img, width, height, Rgba8).unwrap();
+        save_buffer("data/out.png", &img, width, height, Rgba8).unwrap();
 
         assert_eq!(img[0..5], [45, 1, 56, 255, 45]);
     }
