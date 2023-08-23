@@ -240,4 +240,16 @@ mod tests {
 
         assert_eq!(img[0..5], [1, 1, 1, 255, 1]);
     }
+
+    #[test]
+    fn test_jelly_beans() {
+        use image::{EncodableLayout, GenericImageView};
+
+        let img = image::open("data/octocat.png").unwrap();
+        let (width, height) = img.dimensions();
+        let blurhash = encode(4, 3, width, height, img.to_rgba8().as_bytes()).unwrap();
+
+        // assert_eq!(blurhash, "LFL4=pI8%foujXofRkWC.loyH?V{");
+        assert_eq!(blurhash, "LNAdAqj[00aymkj[TKay9}ay-Sj[");
+    }
 }
