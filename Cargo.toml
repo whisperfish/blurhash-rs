@@ -2,7 +2,7 @@
 name = "blurhash"
 description = "A pure Rust implementation of blurhash"
 documentation = "https://docs.rs/blurhash"
-repository = "https://github.com/Raincal/blurhash-rs"
+repository = "https://github.com/whisperfish/blurhash-rs"
 readme = "README.md"
 keywords = ["blurhash", "image"]
 license = "Apache-2.0/MIT"
