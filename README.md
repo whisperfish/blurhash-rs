@@ -1,8 +1,8 @@
 # blurhash-rs
 
-![Crates.io](https://img.shields.io/crates/v/blurhash.svg?logo=blurhash&style=flat-square)
-[![Actions Status](https://wdp9fww0r9.execute-api.us-west-2.amazonaws.com/production/badge/Raincal/blurhash-rs?style=flat-square)](https://wdp9fww0r9.execute-api.us-west-2.amazonaws.com/production/results/Raincal/blurhash-rs)
-![Crates.io](https://img.shields.io/crates/l/blurhash.svg?logo=blurhash&style=flat-square)
+![CI Build](https://github.com/whisperfish/blurhash/workflows/Build/badge.svg)
+[![Crates.io](https://img.shields.io/crates/v/blurhash.svg)](https://crates.io/crates/blurhash)
+[![Crates.io](https://img.shields.io/crates/l/blurhash.svg)](https://crates.io/crates/blurhash)
 
 > A pure Rust implementation of [Blurhash](https://github.com/woltapp/blurhash).
 
