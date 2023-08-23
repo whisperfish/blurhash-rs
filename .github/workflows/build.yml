@@ -52,6 +52,13 @@ jobs:
           command: test
           args: --all-targets --no-fail-fast
 
+      - name: Run doc tests
+        uses: actions-rs/cargo@v1
+        if: ${{ !matrix.coverage }}
+        with:
+          command: test
+          args: --doc --no-fail-fast
+
       - name: Run tests
         uses: actions-rs/cargo@v1
         if: ${{ matrix.coverage }}
