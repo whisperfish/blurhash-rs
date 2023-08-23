@@ -27,7 +27,7 @@ pub fn decode(str: &str) -> Result<usize, Error> {
         let digit: usize = CHARACTERS
             .iter()
             .position(|r| r == byte)
-            .ok_or_else(|| Error::InvalidBase83(*byte))?;
+            .ok_or(Error::InvalidBase83(*byte))?;
         value = value * 83 + digit;
     }
 

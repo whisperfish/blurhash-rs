@@ -126,12 +126,24 @@ fn multiply_basis_function(
     [r * scale, g * scale, b * scale]
 }
 
-/// Decodes the given blurhash to an image of the specified size.
+/// Decodes the given blurhash to an image of the specified size into an existing buffer.
 ///
 /// The punch parameter can be used to de- or increase the contrast of the
 /// resulting image.
-pub fn decode(blurhash: &str, width: u32, height: u32, punch: f32) -> Result<Vec<u8>, Error> {
+pub fn decode_into(
+    pixels: &mut [u8],
+    blurhash: &str,
+    width: u32,
+    height: u32,
+    punch: f32,
+) -> Result<(), Error> {
     let (num_x, num_y) = components(blurhash)?;
+
+    assert_eq!(
+        (width * height * 4) as usize,
+        pixels.len(),
+        "buffer length equals 4 * width * height"
+    );
 
     let quantised_maximum_value = base83::decode(&blurhash[1..2])?;
     let maximum_value = (quantised_maximum_value + 1) as f32 / 166.;
@@ -149,7 +161,6 @@ pub fn decode(blurhash: &str, width: u32, height: u32, punch: f32) -> Result<Vec
     }
 
     let bytes_per_row = width * 4;
-    let mut pixels = vec![0; (bytes_per_row * height) as usize];
 
     for y in 0..height {
         for x in 0..width {
@@ -171,13 +182,25 @@ pub fn decode(blurhash: &str, width: u32, height: u32, punch: f32) -> Result<Vec
             let int_g = linear_to_srgb(pixel[1]);
             let int_b = linear_to_srgb(pixel[2]);
 
-            pixels[(4 * x + y * bytes_per_row) as usize] = int_r as u8;
-            pixels[(4 * x + 1 + y * bytes_per_row) as usize] = int_g as u8;
-            pixels[(4 * x + 2 + y * bytes_per_row) as usize] = int_b as u8;
-            pixels[(4 * x + 3 + y * bytes_per_row) as usize] = 255u8;
+            let pixels = &mut pixels[((4 * x + y * bytes_per_row) as usize)..][..4];
+
+            pixels[0] = int_r as u8;
+            pixels[1] = int_g as u8;
+            pixels[2] = int_b as u8;
+            pixels[3] = 255u8;
         }
     }
-    Ok(pixels)
+    Ok(())
+}
+
+/// Decodes the given blurhash to an image of the specified size.
+///
+/// The punch parameter can be used to de- or increase the contrast of the
+/// resulting image.
+pub fn decode(blurhash: &str, width: u32, height: u32, punch: f32) -> Result<Vec<u8>, Error> {
+    let bytes_per_row = width * 4;
+    let mut pixels = vec![0; (bytes_per_row * height) as usize];
+    decode_into(&mut pixels, blurhash, width, height, punch).map(|()| pixels)
 }
 
 fn components(blurhash: &str) -> Result<(usize, usize), Error> {
