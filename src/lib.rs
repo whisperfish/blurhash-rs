@@ -8,7 +8,7 @@
 //!
 //! let img = image::open("data/octocat.png").unwrap();
 //! let (width, height) = img.dimensions();
-//! let blurhash = encode(4, 3, width, height, img.to_rgba().as_bytes()).unwrap();
+//! let blurhash = encode(4, 3, width, height, img.to_rgba8().as_bytes()).unwrap();
 //!
 //! assert_eq!(blurhash, "LBAdAqof00WCqZj[PDay0.WB}pof");
 //! ```
