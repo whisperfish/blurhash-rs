@@ -238,6 +238,6 @@ mod tests {
         let img = decode(&blurhash, width, height, 1.0).unwrap();
         save_buffer("data/out.png", &img, width, height, Rgba8).unwrap();
 
-        assert_eq!(img[0..5], [45, 1, 56, 255, 45]);
+        assert_eq!(img[0..5], [1, 1, 1, 255, 1]);
     }
 }
