@@ -300,7 +300,7 @@ pub fn decode_pixbuf(
         8,
         width,
         height,
-        4 * height,
+        4 * width,
     );
     Ok(buffer)
 }
