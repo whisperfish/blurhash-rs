@@ -371,7 +371,7 @@ mod tests {
     #[cfg(feature = "gdk-pixbuf")]
     fn decode_blurhash_pixbuf() {
         use std::convert::TryInto;
-        let img = gdk_pixbuf::Pixbuf::from_file("data/octocat.png").unwrap();
+        let img = gdk_pixbuf::Pixbuf::from_file("data/wikipedia_logo.svg").unwrap();
 
         let blurhash = encode_pixbuf(4, 3, &img).unwrap();
         let img = decode_pixbuf(
@@ -382,6 +382,8 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(img.read_pixel_bytes()[0..5], [1, 1, 1, 255, 1]);
+        let bytes = img.save_to_bufferv("png", &[]).unwrap();
+
+        assert_eq!(bytes[1000..1005], [77, 210, 4, 80, 15]);
     }
 }
