@@ -214,7 +214,7 @@ fn components(blurhash: &str) -> Result<(usize, usize), Error> {
 
     let size_flag = base83::decode(&blurhash[0..1])?;
     let num_y = (f32::floor(size_flag as f32 / 9.) + 1.) as usize;
-    let num_x = (size_flag % 9) + 1;
+    let num_x = ((size_flag % 9) + 1) as usize;
 
     let expected = 4 + 2 * num_x * num_y;
     if blurhash.len() != expected {
