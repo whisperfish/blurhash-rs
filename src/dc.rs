@@ -18,3 +18,13 @@ pub fn decode(value: u32) -> [f32; 3] {
         srgb_to_linear(int_b as u8),
     ]
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn overflow_not_panicing() {
+        let _ = decode(1 << 17);
+    }
+}
