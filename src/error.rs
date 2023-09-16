@@ -4,6 +4,7 @@ use std::fmt;
 pub enum Error {
     HashTooShort,
     LengthMismatch { expected: usize, actual: usize },
+    InvalidAscii,
     InvalidBase83(u8),
     ComponentsOutOfRange,
 }
@@ -17,6 +18,7 @@ impl fmt::Display for Error {
                 actual, expected
             ),
             Error::InvalidBase83(byte) => format!("Invalid base83 character: {:?}", *byte as char),
+            Error::InvalidAscii => "blurhash must be valid ASCII".into(),
             Error::ComponentsOutOfRange => "blurhash must have between 1 and 9 components".into(),
         };
         write!(f, "{}", message)

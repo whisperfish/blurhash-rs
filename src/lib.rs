@@ -137,6 +137,10 @@ pub fn decode_into(
     height: u32,
     punch: f32,
 ) -> Result<(), Error> {
+    if !blurhash.is_ascii() {
+        return Err(Error::InvalidAscii);
+    }
+
     let (num_x, num_y) = components(blurhash)?;
 
     assert_eq!(
