@@ -328,6 +328,14 @@ mod tests {
     }
 
     #[test]
+    fn decode_non_ascii() {
+        assert!(matches!(
+            decode("ͱZ", 50, 50, 1.0),
+            Err(Error::InvalidAscii)
+        ));
+    }
+
+    #[test]
     fn test_jelly_beans() {
         use image::{EncodableLayout, GenericImageView};
 
