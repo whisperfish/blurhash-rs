@@ -115,9 +115,9 @@ fn multiply_basis_function(
         for x in 0..width {
             let basis = f32::cos(PI * component_x as f32 * x as f32 / width as f32)
                 * f32::cos(PI * component_y as f32 * y as f32 / height as f32);
-            r += basis * srgb_to_linear(u32::from(rgb[(4 * x + y * bytes_per_row) as usize]));
-            g += basis * srgb_to_linear(u32::from(rgb[(4 * x + 1 + y * bytes_per_row) as usize]));
-            b += basis * srgb_to_linear(u32::from(rgb[(4 * x + 2 + y * bytes_per_row) as usize]));
+            r += basis * srgb_to_linear(rgb[(4 * x + y * bytes_per_row) as usize]);
+            g += basis * srgb_to_linear(rgb[(4 * x + 1 + y * bytes_per_row) as usize]);
+            b += basis * srgb_to_linear(rgb[(4 * x + 2 + y * bytes_per_row) as usize]);
         }
     }
 

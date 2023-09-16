@@ -1,7 +1,7 @@
 use std::io::Write;
 
 /// srgb 0-255 integer to linear 0.0-1.0 floating point conversion.
-pub fn srgb_to_linear(value: u32) -> f32 {
+pub fn srgb_to_linear(value: u8) -> f32 {
     let v = value as f32 / 255.;
     if v <= 0.04045 {
         v / 12.92
@@ -13,7 +13,7 @@ pub fn srgb_to_linear(value: u32) -> f32 {
 fn generate_srgb_lookup() -> [f32; 256] {
     let mut table = [0f32; 256];
     for (i, val) in table.iter_mut().enumerate() {
-        *val = srgb_to_linear(i as u32);
+        *val = srgb_to_linear(i as u8);
     }
     table
 }
