@@ -115,9 +115,9 @@ fn multiply_basis_function(
         for x in 0..width {
             let basis = f32::cos(PI * component_x as f32 * x as f32 / width as f32)
                 * f32::cos(PI * component_y as f32 * y as f32 / height as f32);
-            r += basis * srgb_to_linear(u32::from(rgb[(4 * x + y * bytes_per_row) as usize]));
-            g += basis * srgb_to_linear(u32::from(rgb[(4 * x + 1 + y * bytes_per_row) as usize]));
-            b += basis * srgb_to_linear(u32::from(rgb[(4 * x + 2 + y * bytes_per_row) as usize]));
+            r += basis * srgb_to_linear(rgb[(4 * x + y * bytes_per_row) as usize]);
+            g += basis * srgb_to_linear(rgb[(4 * x + 1 + y * bytes_per_row) as usize]);
+            b += basis * srgb_to_linear(rgb[(4 * x + 2 + y * bytes_per_row) as usize]);
         }
     }
 
@@ -137,6 +137,10 @@ pub fn decode_into(
     height: u32,
     punch: f32,
 ) -> Result<(), Error> {
+    if !blurhash.is_ascii() {
+        return Err(Error::InvalidAscii);
+    }
+
     let (num_x, num_y) = components(blurhash)?;
 
     assert_eq!(
@@ -210,7 +214,7 @@ fn components(blurhash: &str) -> Result<(usize, usize), Error> {
 
     let size_flag = base83::decode(&blurhash[0..1])?;
     let num_y = (f32::floor(size_flag as f32 / 9.) + 1.) as usize;
-    let num_x = (size_flag % 9) + 1;
+    let num_x = ((size_flag % 9) + 1) as usize;
 
     let expected = 4 + 2 * num_x * num_y;
     if blurhash.len() != expected {
@@ -321,6 +325,14 @@ mod tests {
         save_buffer("data/out.png", &img, width, height, Rgba8).unwrap();
 
         assert_eq!(img[0..5], [1, 1, 1, 255, 1]);
+    }
+
+    #[test]
+    fn decode_non_ascii() {
+        assert!(matches!(
+            decode("ͱZ", 50, 50, 1.0),
+            Err(Error::InvalidAscii)
+        ));
     }
 
     #[test]

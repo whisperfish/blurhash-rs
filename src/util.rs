@@ -11,7 +11,7 @@ pub fn linear_to_srgb(value: f32) -> u32 {
 }
 
 /// srgb 0-255 integer to linear 0.0-1.0 floating point conversion.
-pub fn srgb_to_linear(value: u32) -> f32 {
+pub fn srgb_to_linear(value: u8) -> f32 {
     SRGB_LOOKUP[value as usize]
 }
 

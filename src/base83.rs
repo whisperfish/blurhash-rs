@@ -20,7 +20,11 @@ pub fn encode(value: u32, length: u32) -> String {
     result
 }
 
-pub fn decode(str: &str) -> Result<usize, Error> {
+pub fn decode(str: &str) -> Result<u64, Error> {
+    // log_83(2^64) = 10.03
+    if str.len() > 10 {
+        panic!("base83::decode can only process strings up to 10 characters");
+    }
     let mut value = 0;
 
     for byte in str.as_bytes() {
@@ -28,7 +32,7 @@ pub fn decode(str: &str) -> Result<usize, Error> {
             .iter()
             .position(|r| r == byte)
             .ok_or(Error::InvalidBase83(*byte))?;
-        value = value * 83 + digit;
+        value = value * 83 + digit as u64;
     }
 
     Ok(value)
@@ -48,5 +52,11 @@ mod tests {
     fn decode83() {
         let v = decode("~$").unwrap();
         assert_eq!(v, 6869);
+    }
+
+    #[test]
+    #[should_panic]
+    fn decode83_too_long() {
+        let _ = decode("~$aaaaaaaaa");
     }
 }

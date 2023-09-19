@@ -8,13 +8,23 @@ pub fn encode(value: [f32; 3]) -> u32 {
 }
 
 pub fn decode(value: u32) -> [f32; 3] {
-    let int_r = value >> 16;
+    let int_r = (value >> 16) & 255;
     let int_g = (value >> 8) & 255;
     let int_b = value & 255;
 
     [
-        srgb_to_linear(int_r),
-        srgb_to_linear(int_g),
-        srgb_to_linear(int_b),
+        srgb_to_linear(int_r as u8),
+        srgb_to_linear(int_g as u8),
+        srgb_to_linear(int_b as u8),
     ]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn overflow_not_panicing() {
+        let _ = decode(1 << 17);
+    }
 }
