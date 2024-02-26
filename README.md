@@ -14,7 +14,7 @@ Add `blurhash` to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-blurhash = "0.2.0"
+blurhash = "0.2.1"
 ```
 
 ### Encoding

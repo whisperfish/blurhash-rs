@@ -6,7 +6,7 @@ repository = "https://github.com/whisperfish/blurhash-rs"
 readme = "README.md"
 keywords = ["blurhash", "image"]
 license = "Apache-2.0/MIT"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Ruben De Smet <ruben.de.smet@rubdos.be>", "Raincal <cyj94228@gmail.com>"]
 edition = "2018"
 
