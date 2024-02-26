@@ -12,7 +12,7 @@ edition = "2018"
 
 [dependencies]
 image = { version = "0.23", optional = true }
-gdk-pixbuf = { version = "0.18", optional = true }
+gdk-pixbuf = { version = "0.19", optional = true }
 
 [dev-dependencies]
 image = "0.23"
