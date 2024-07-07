@@ -1,9 +1,9 @@
 use super::util::{linear_to_srgb, srgb_to_linear};
 
 pub fn encode(value: [f32; 3]) -> u32 {
-    let rounded_r = linear_to_srgb(value[0]);
-    let rounded_g = linear_to_srgb(value[1]);
-    let rounded_b = linear_to_srgb(value[2]);
+    let rounded_r = linear_to_srgb(value[0]) as u32;
+    let rounded_g = linear_to_srgb(value[1]) as u32;
+    let rounded_b = linear_to_srgb(value[2]) as u32;
     (rounded_r << 16) + (rounded_g << 8) + rounded_b
 }
 

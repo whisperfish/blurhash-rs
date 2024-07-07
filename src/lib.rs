@@ -200,9 +200,9 @@ pub fn decode_into(
 
             let pixels = &mut pixels[((4 * x + y * bytes_per_row) as usize)..][..4];
 
-            pixels[0] = int_r as u8;
-            pixels[1] = int_g as u8;
-            pixels[2] = int_b as u8;
+            pixels[0] = int_r;
+            pixels[1] = int_g;
+            pixels[2] = int_b;
             pixels[3] = 255u8;
         }
     }
