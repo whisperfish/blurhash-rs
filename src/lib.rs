@@ -173,14 +173,17 @@ pub fn decode_into(
 
     let bytes_per_row = width * 4;
 
+    let height_inv = 1. / height as f32;
+    let width_inv = 1. / width as f32;
+
     for y in 0..height {
         for x in 0..width {
             let mut pixel = [0.; 3];
 
             for j in 0..num_y {
                 for i in 0..num_x {
-                    let basis = f32::cos((PI * x as f32 * i as f32) / width as f32)
-                        * f32::cos((PI * y as f32 * j as f32) / height as f32);
+                    let basis = f32::cos((PI * x as f32 * i as f32) * width_inv)
+                        * f32::cos(PI * y as f32 * j as f32 * height_inv);
                     let color = &colors[i + j * num_x];
 
                     pixel[0] += color[0] * basis;
