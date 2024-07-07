@@ -70,10 +70,8 @@ pub fn encode(
             actualmaximum_value = f32::max(f32::abs(ac[i as usize][2]), actualmaximum_value);
         }
 
-        let quantised_maximum_value = f32::max(
-            0.,
-            f32::min(82., f32::floor(actualmaximum_value * 166. - 0.5)),
-        ) as u32;
+        let quantised_maximum_value =
+            f32::floor(actualmaximum_value * 166. - 0.5).clamp(0., 82.) as u32;
 
         maximum_value = (quantised_maximum_value + 1) as f32 / 166.;
         blurhash.push_str(&base83::encode(quantised_maximum_value, 1));
