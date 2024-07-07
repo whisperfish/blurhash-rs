@@ -44,7 +44,8 @@ pub fn encode(
         return Err(Error::ComponentsOutOfRange);
     }
 
-    let mut factors: Vec<[f32; 3]> = Vec::new();
+    let mut factors: Vec<[f32; 3]> =
+        Vec::with_capacity(components_x as usize * components_y as usize);
 
     for y in 0..components_y {
         for x in 0..components_x {
