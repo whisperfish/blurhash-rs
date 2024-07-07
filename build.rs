@@ -23,10 +23,19 @@ fn write_srgb(f: &mut std::fs::File) {
     writeln!(f, "static SRGB_LOOKUP: [f32; 256] = {:?};", table).unwrap();
 }
 
+fn write_base83(f: &mut std::fs::File) {
+    const CHARACTERS: &[u8; 83] =
+        b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~";
+    writeln!(f, "const CHARACTERS: [u8; 83] = {:?};", CHARACTERS).unwrap();
+}
+
 fn main() {
     let out_dir = std::env::var("OUT_DIR").unwrap();
     let out_dir = std::path::PathBuf::from(out_dir);
 
     let mut f = std::fs::File::create(out_dir.join("srgb_lookup.rs")).unwrap();
     write_srgb(&mut f);
+
+    let mut f = std::fs::File::create(out_dir.join("base83_lookup.rs")).unwrap();
+    write_base83(&mut f);
 }
