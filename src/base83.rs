@@ -9,15 +9,11 @@ static CHARACTERS: [u8; 83] = [
     b'|', b'}', b'~',
 ];
 
-pub fn encode(value: u32, length: u32) -> String {
-    let mut result = String::new();
-
+pub fn encode_into(value: u32, length: u32, s: &mut String) {
     for i in 1..=length {
         let digit: u32 = (value / u32::pow(83, length - i)) % 83;
-        result.push(CHARACTERS[digit as usize] as char);
+        s.push(CHARACTERS[digit as usize] as char);
     }
-
-    result
 }
 
 pub fn decode(str: &str) -> Result<u64, Error> {
@@ -40,7 +36,13 @@ pub fn decode(str: &str) -> Result<u64, Error> {
 
 #[cfg(test)]
 mod tests {
-    use super::{decode, encode};
+    use super::{decode, encode_into};
+
+    fn encode(value: u32, length: u32) -> String {
+        let mut s = String::new();
+        encode_into(value, length, &mut s);
+        s
+    }
 
     #[test]
     fn encode83() {

@@ -57,10 +57,19 @@ pub fn encode(
     let dc = factors[0];
     let ac = &factors[1..];
 
-    let mut blurhash = String::new();
+    let mut blurhash = String::with_capacity(
+        // 1 byte for size flag
+        1
+        // 1 byte for maximum value
+        + 1
+        // 4 bytes for DC
+        + 4
+        // 2 bytes for each AC
+        + 2 * ac.len(),
+    );
 
     let size_flag = (components_x - 1) + (components_y - 1) * 9;
-    blurhash.push_str(&base83::encode(size_flag, 1));
+    base83::encode_into(size_flag, 1, &mut blurhash);
 
     let maximum_value: f32;
     if !ac.is_empty() {
@@ -77,19 +86,16 @@ pub fn encode(
         ) as u32;
 
         maximum_value = (quantised_maximum_value + 1) as f32 / 166.;
-        blurhash.push_str(&base83::encode(quantised_maximum_value, 1));
+        base83::encode_into(quantised_maximum_value, 1, &mut blurhash);
     } else {
         maximum_value = 1.;
-        blurhash.push_str(&base83::encode(0, 1));
+        base83::encode_into(0, 1, &mut blurhash);
     }
 
-    blurhash.push_str(&base83::encode(dc::encode(dc), 4));
+    base83::encode_into(dc::encode(dc), 4, &mut blurhash);
 
     for i in 0..components_y * components_x - 1 {
-        blurhash.push_str(&base83::encode(
-            ac::encode(ac[i as usize], maximum_value),
-            2,
-        ));
+        base83::encode_into(ac::encode(ac[i as usize], maximum_value), 2, &mut blurhash);
     }
 
     Ok(blurhash)
