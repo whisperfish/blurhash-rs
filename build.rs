@@ -18,11 +18,15 @@ fn generate_srgb_lookup() -> [f32; 256] {
     table
 }
 
-fn main() {
+fn write_srgb(f: &mut std::fs::File) {
     let table = generate_srgb_lookup();
+    writeln!(f, "static SRGB_LOOKUP: [f32; 256] = {:?};", table).unwrap();
+}
 
+fn main() {
     let out_dir = std::env::var("OUT_DIR").unwrap();
     let out_dir = std::path::PathBuf::from(out_dir);
+
     let mut f = std::fs::File::create(out_dir.join("srgb_lookup.rs")).unwrap();
-    writeln!(f, "static SRGB_LOOKUP: [f32; 256] = {:?};", table).unwrap();
+    write_srgb(&mut f);
 }
