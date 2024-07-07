@@ -370,6 +370,7 @@ mod tests {
     use super::*;
     use image::{save_buffer, ColorType::Rgba8};
     use image::{EncodableLayout, GenericImageView};
+    use proptest::proptest;
 
     #[test]
     fn decode_blurhash() {
@@ -453,5 +454,21 @@ mod tests {
         let bytes = img.save_to_bufferv("png", &[]).unwrap();
 
         assert_eq!(bytes[1000..1005], [77, 210, 4, 80, 15]);
+    }
+
+    proptest! {
+        #[test]
+        fn roundtrip_octocat(x_components in 1..10u32, y_components in 1..10u32, punch in 0.0..1.0f32) {
+            let img = image::open("data/octocat.png").unwrap();
+            let (width, height) = img.dimensions();
+
+            let blurhash = encode(x_components, y_components, width, height, img.to_rgba8().as_bytes()).unwrap();
+            let _img = decode(&blurhash, width, height, punch).unwrap();
+        }
+
+        #[test]
+        fn decode_doesnt_panic(blurhash in "([A-Za-z0-9+/]{4}){2,}", width in 1..1000u32, height in 1..1000u32, punch in 0.0..1.0f32) {
+            let _ = decode(&blurhash, width, height, punch);
+        }
     }
 }
