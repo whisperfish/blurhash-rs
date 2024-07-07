@@ -27,6 +27,19 @@ fn write_base83(f: &mut std::fs::File) {
     const CHARACTERS: &[u8; 83] =
         b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$%*+,-.:;=?@[]^_{|}~";
     writeln!(f, "const CHARACTERS: [u8; 83] = {:?};", CHARACTERS).unwrap();
+
+    let max_plus_one = CHARACTERS.iter().max().unwrap() + 1;
+    let mut inv_map: [u8; 256] = [max_plus_one; 256];
+    for (i, &c) in CHARACTERS.iter().enumerate() {
+        inv_map[c as usize] = i as u8;
+    }
+    writeln!(
+        f,
+        "const CHARACTERS_INV: [u8; {max_plus_one}] = {:?};",
+        &inv_map[0..max_plus_one as usize]
+    )
+    .unwrap();
+    writeln!(f, "const CHARACTERS_INV_INVALID: u8 = {};", max_plus_one).unwrap();
 }
 
 fn main() {

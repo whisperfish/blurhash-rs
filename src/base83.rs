@@ -17,10 +17,13 @@ pub fn decode(str: &str) -> Result<u64, Error> {
     let mut value = 0;
 
     for byte in str.as_bytes() {
-        let digit: usize = CHARACTERS
-            .iter()
-            .position(|r| r == byte)
-            .ok_or(Error::InvalidBase83(*byte))?;
+        if *byte as usize >= CHARACTERS_INV.len() {
+            return Err(Error::InvalidBase83(*byte));
+        }
+        let digit = CHARACTERS_INV[*byte as usize];
+        if digit == CHARACTERS_INV_INVALID {
+            return Err(Error::InvalidBase83(*byte));
+        }
         value = value * 83 + digit as u64;
     }
 
@@ -47,6 +50,11 @@ mod tests {
     fn decode83() {
         let v = decode("~$").unwrap();
         assert_eq!(v, 6869);
+    }
+
+    #[test]
+    fn decode83_too_large() {
+        assert!(decode("€").is_err());
     }
 
     #[test]
