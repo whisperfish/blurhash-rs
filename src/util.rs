@@ -15,14 +15,11 @@ pub fn srgb_to_linear(value: u8) -> f32 {
     SRGB_LOOKUP[value as usize]
 }
 
-fn sign(n: f32) -> f32 {
-    if n < 0. {
-        -1.
-    } else {
-        1.
-    }
-}
-
 pub fn sign_pow(val: f32, exp: f32) -> f32 {
-    sign(val) * f32::powf(val.abs(), exp)
+    let t = f32::powf(val.abs(), exp);
+    if val < 0. {
+        -t
+    } else {
+        t
+    }
 }
