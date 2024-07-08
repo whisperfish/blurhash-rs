@@ -6,7 +6,10 @@ pub fn linear_to_srgb(value: f32) -> u8 {
     if v <= 0.003_130_8 {
         (v * 12.92 * 255. + 0.5).round() as u8
     } else {
-        ((1.055 * f32::powf(v, 1. / 2.4) - 0.055) * 255. + 0.5).round() as u8
+        // The original C implementation uses this formula:
+        // ((1.055 * f32::powf(v, 1. / 2.4) - 0.055) * 255. + 0.5).round() as u8
+        // But we can distribute the latter multiplication, to reduce the number of operations:
+        ((1.055 * 255.) * f32::powf(v, 1. / 2.4) - (0.055 * 255. - 0.5)).round() as u8
     }
 }
 
