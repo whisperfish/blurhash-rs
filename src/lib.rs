@@ -179,26 +179,32 @@ pub fn decode_into(
     let pi_over_height = PI / height as f32;
     let pi_over_width = PI / width as f32;
 
-    let mut pi_x_over_width = vec![0.; width as usize];
+    // Precompute the cosines
+    let mut cos_i_pi_x_over_width = vec![0.; width as usize * num_x];
+    let mut cos_j_pi_y_over_height = vec![0.; height as usize * num_y];
+
     for x in 0..width {
-        pi_x_over_width[x as usize] = x as f32 * pi_over_width as f32;
+        let pi_x_over_width = x as f32 * pi_over_width;
+        for i in 0..num_x {
+            cos_i_pi_x_over_width[x as usize * num_x + i] = f32::cos(pi_x_over_width * i as f32);
+        }
     }
 
-    let mut cos_i_pi_x_over_width = vec![0.; num_x];
+    for y in 0..height {
+        let pi_y_over_height = y as f32 * pi_over_height;
+        for j in 0..num_y {
+            cos_j_pi_y_over_height[y as usize * num_y + j] = f32::cos(j as f32 * pi_y_over_height);
+        }
+    }
 
     for y in 0..height {
-        let pi_y_over_height = PI * y as f32 * pi_over_height;
         for x in 0..width {
             let mut pixel = [0.; 3];
 
-            for i in 0..num_x {
-                cos_i_pi_x_over_width[i] = f32::cos(pi_x_over_width[x as usize] * i as f32);
-            }
-
             for j in 0..num_y {
-                let cos_j_pi_y_over_height = f32::cos(j as f32 * pi_y_over_height);
                 for i in 0..num_x {
-                    let basis = cos_i_pi_x_over_width[i] * cos_j_pi_y_over_height;
+                    let basis = cos_i_pi_x_over_width[x as usize * num_x + i]
+                        * cos_j_pi_y_over_height[y as usize * num_y + j];
                     let color = &colors[i + j * num_x];
 
                     pixel[0] += color[0] * basis;
