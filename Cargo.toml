@@ -11,11 +11,11 @@ authors = ["Ruben De Smet <ruben.de.smet@rubdos.be>", "Raincal <cyj94228@gmail.c
 edition = "2018"
 
 [dependencies]
-image = { version = ">= 0.23, <= 0.24", optional = true }
+image = { version = ">= 0.23, <= 0.25", optional = true }
 gdk-pixbuf = { version = ">= 0.18, <= 0.19", optional = true }
 
 [dev-dependencies]
-image = ">= 0.23, <= 0.24"
+image = ">= 0.23, <= 0.25"
 criterion = "0.5"
 
 [features]

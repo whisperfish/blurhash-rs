@@ -44,7 +44,8 @@ pub fn encode(
         return Err(Error::ComponentsOutOfRange);
     }
 
-    let mut factors: Vec<[f32; 3]> = Vec::new();
+    let mut factors: Vec<[f32; 3]> =
+        Vec::with_capacity(components_x as usize * components_y as usize);
 
     for y in 0..components_y {
         for x in 0..components_x {
@@ -56,37 +57,43 @@ pub fn encode(
     let dc = factors[0];
     let ac = &factors[1..];
 
-    let mut blurhash = String::new();
+    let mut blurhash = String::with_capacity(
+        // 1 byte for size flag
+        1
+        // 1 byte for maximum value
+        + 1
+        // 4 bytes for DC
+        + 4
+        // 2 bytes for each AC
+        + 2 * ac.len(),
+    );
 
     let size_flag = (components_x - 1) + (components_y - 1) * 9;
-    blurhash.push_str(&base83::encode(size_flag, 1));
+    base83::encode_into(size_flag, 1, &mut blurhash);
 
     let maximum_value: f32;
     if !ac.is_empty() {
-        let mut actualmaximum_value = 0.0;
-        for i in 0..components_y * components_x - 1 {
-            actualmaximum_value = f32::max(f32::abs(ac[i as usize][0]), actualmaximum_value);
-            actualmaximum_value = f32::max(f32::abs(ac[i as usize][1]), actualmaximum_value);
-            actualmaximum_value = f32::max(f32::abs(ac[i as usize][2]), actualmaximum_value);
-        }
+        let actualmaximum_value = ac
+            .iter()
+            .flatten()
+            .map(|x| f32::abs(*x))
+            .reduce(f32::max)
+            .unwrap_or(0.0);
 
         let quantised_maximum_value =
             f32::floor(actualmaximum_value * 166. - 0.5).clamp(0., 82.) as u32;
 
         maximum_value = (quantised_maximum_value + 1) as f32 / 166.;
-        blurhash.push_str(&base83::encode(quantised_maximum_value, 1));
+        base83::encode_into(quantised_maximum_value, 1, &mut blurhash);
     } else {
         maximum_value = 1.;
-        blurhash.push_str(&base83::encode(0, 1));
+        base83::encode_into(0, 1, &mut blurhash);
     }
 
-    blurhash.push_str(&base83::encode(dc::encode(dc), 4));
+    base83::encode_into(dc::encode(dc), 4, &mut blurhash);
 
     for i in 0..components_y * components_x - 1 {
-        blurhash.push_str(&base83::encode(
-            ac::encode(ac[i as usize], maximum_value),
-            2,
-        ));
+        base83::encode_into(ac::encode(ac[i as usize], maximum_value), 2, &mut blurhash);
     }
 
     Ok(blurhash)
@@ -109,10 +116,22 @@ fn multiply_basis_function(
 
     let bytes_per_row = width * 4;
 
+    let pi_cx_over_width = PI * component_x as f32 / width as f32;
+    let pi_cy_over_height = PI * component_y as f32 / height as f32;
+
+    let mut cos_pi_cx_over_width = vec![0.; width as usize];
+    for x in 0..width {
+        cos_pi_cx_over_width[x as usize] = f32::cos(pi_cx_over_width * x as f32);
+    }
+
+    let mut cos_pi_cy_over_height = vec![0.; height as usize];
+    for y in 0..height {
+        cos_pi_cy_over_height[y as usize] = f32::cos(pi_cy_over_height * y as f32);
+    }
+
     for y in 0..height {
         for x in 0..width {
-            let basis = f32::cos(PI * component_x as f32 * x as f32 / width as f32)
-                * f32::cos(PI * component_y as f32 * y as f32 / height as f32);
+            let basis = cos_pi_cx_over_width[x as usize] * cos_pi_cy_over_height[y as usize];
             r += basis * srgb_to_linear(rgb[(4 * x + y * bytes_per_row) as usize]);
             g += basis * srgb_to_linear(rgb[(4 * x + 1 + y * bytes_per_row) as usize]);
             b += basis * srgb_to_linear(rgb[(4 * x + 2 + y * bytes_per_row) as usize]);
@@ -162,17 +181,56 @@ pub fn decode_into(
         }
     }
 
-    let bytes_per_row = width * 4;
+    let colors: Vec<_> = colors.chunks(num_x).collect();
+
+    let bytes_per_row = width as usize * 4;
+
+    let pi_over_height = PI / height as f32;
+    let pi_over_width = PI / width as f32;
+
+    // Precompute the cosines
+    let mut cos_i_pi_x_over_width = vec![0.; width as usize * num_x];
+    let mut cos_j_pi_y_over_height = vec![0.; height as usize * num_y];
+
+    for x in 0..width {
+        let pi_x_over_width = x as f32 * pi_over_width;
+        for i in 0..num_x {
+            cos_i_pi_x_over_width[x as usize * num_x + i] = f32::cos(pi_x_over_width * i as f32);
+        }
+    }
 
     for y in 0..height {
-        for x in 0..width {
+        let pi_y_over_height = y as f32 * pi_over_height;
+        for j in 0..num_y {
+            cos_j_pi_y_over_height[y as usize * num_y + j] = f32::cos(j as f32 * pi_y_over_height);
+        }
+    }
+
+    // Hint to the optimizer that the length of the slices is correct
+    assert!(height as usize * num_y == cos_j_pi_y_over_height.len());
+    assert!(width as usize * num_x == cos_i_pi_x_over_width.len());
+
+    for y in 0..height as usize {
+        let pixels = &mut pixels[y * bytes_per_row..][..bytes_per_row];
+
+        // More optimizer hints.
+        assert!(y * num_y + num_y <= cos_j_pi_y_over_height.len());
+
+        for x in 0..width as usize {
             let mut pixel = [0.; 3];
 
-            for j in 0..num_y {
-                for i in 0..num_x {
-                    let basis = f32::cos((PI * x as f32 * i as f32) / width as f32)
-                        * f32::cos((PI * y as f32 * j as f32) / height as f32);
-                    let color = &colors[i + j * num_x];
+            let cos_j_pi_y_over_height = &cos_j_pi_y_over_height[y * num_y..][..num_y];
+            let cos_i_pi_x_over_width = &cos_i_pi_x_over_width[x * num_x..][..num_x];
+
+            assert_eq!(cos_j_pi_y_over_height.len(), colors.len());
+            assert_eq!(cos_j_pi_y_over_height.len(), num_y);
+
+            for (cos_j, colors) in cos_j_pi_y_over_height.iter().zip(colors.iter()) {
+                assert_eq!(cos_i_pi_x_over_width.len(), colors.len());
+                assert_eq!(cos_i_pi_x_over_width.len(), num_x);
+
+                for (cos_i, color) in cos_i_pi_x_over_width.iter().zip(colors.iter()) {
+                    let basis = cos_i * cos_j;
 
                     pixel[0] += color[0] * basis;
                     pixel[1] += color[1] * basis;
@@ -184,11 +242,11 @@ pub fn decode_into(
             let int_g = linear_to_srgb(pixel[1]);
             let int_b = linear_to_srgb(pixel[2]);
 
-            let pixels = &mut pixels[((4 * x + y * bytes_per_row) as usize)..][..4];
+            let pixels = &mut pixels[4 * x as usize..][..4];
 
-            pixels[0] = int_r as u8;
-            pixels[1] = int_g as u8;
-            pixels[2] = int_b as u8;
+            pixels[0] = int_r;
+            pixels[1] = int_g;
+            pixels[2] = int_b;
             pixels[3] = 255u8;
         }
     }
