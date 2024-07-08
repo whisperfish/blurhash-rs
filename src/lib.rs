@@ -121,10 +121,19 @@ fn multiply_basis_function(
     let pi_cx_over_width = PI * component_x as f32 / width as f32;
     let pi_cy_over_height = PI * component_y as f32 / height as f32;
 
+    let mut cos_pi_cx_over_width = vec![0.; width as usize];
+    for x in 0..width {
+        cos_pi_cx_over_width[x as usize] = f32::cos(pi_cx_over_width * x as f32);
+    }
+
+    let mut cos_pi_cy_over_height = vec![0.; height as usize];
+    for y in 0..height {
+        cos_pi_cy_over_height[y as usize] = f32::cos(pi_cy_over_height * y as f32);
+    }
+
     for y in 0..height {
         for x in 0..width {
-            let basis =
-                f32::cos(pi_cx_over_width * x as f32) * f32::cos(pi_cy_over_height * y as f32);
+            let basis = cos_pi_cx_over_width[x as usize] * cos_pi_cy_over_height[y as usize];
             r += basis * srgb_to_linear(rgb[(4 * x + y * bytes_per_row) as usize]);
             g += basis * srgb_to_linear(rgb[(4 * x + 1 + y * bytes_per_row) as usize]);
             b += basis * srgb_to_linear(rgb[(4 * x + 2 + y * bytes_per_row) as usize]);
