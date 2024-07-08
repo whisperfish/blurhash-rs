@@ -80,10 +80,8 @@ pub fn encode(
             .reduce(f32::max)
             .unwrap_or(0.0);
 
-        let quantised_maximum_value = f32::max(
-            0.,
-            f32::min(82., f32::floor(actualmaximum_value * 166. - 0.5)),
-        ) as u32;
+        let quantised_maximum_value =
+            f32::floor(actualmaximum_value * 166. - 0.5).clamp(0., 82.) as u32;
 
         maximum_value = (quantised_maximum_value + 1) as f32 / 166.;
         base83::encode_into(quantised_maximum_value, 1, &mut blurhash);
