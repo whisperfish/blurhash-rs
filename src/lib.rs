@@ -201,11 +201,14 @@ pub fn decode_into(
         for x in 0..width {
             let mut pixel = [0.; 3];
 
+            let cos_i_pi_x_over_width = &cos_i_pi_x_over_width[x as usize * num_x..][..num_x];
+            let cos_j_pi_y_over_height = &cos_j_pi_y_over_height[y as usize * num_y..][..num_y];
             for j in 0..num_y {
+                let colors = &colors[j * num_x..][..num_x];
+
                 for i in 0..num_x {
-                    let basis = cos_i_pi_x_over_width[x as usize * num_x + i]
-                        * cos_j_pi_y_over_height[y as usize * num_y + j];
-                    let color = &colors[i + j * num_x];
+                    let basis = cos_i_pi_x_over_width[i] * cos_j_pi_y_over_height[j];
+                    let color = &colors[i];
 
                     pixel[0] += color[0] * basis;
                     pixel[1] += color[1] * basis;
