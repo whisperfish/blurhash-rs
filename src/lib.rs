@@ -394,8 +394,9 @@ mod tests {
         )
         .unwrap();
 
-        let bytes = img.save_to_bufferv("png", &[]).unwrap();
-
-        assert_eq!(bytes[1000..1005], [77, 210, 4, 80, 15]);
+        assert_eq!(
+            img.read_pixel_bytes()[1000..1005],
+            [148, 149, 146, 255, 150]
+        );
     }
 }
