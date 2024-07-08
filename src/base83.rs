@@ -1,23 +1,12 @@
 use crate::Error;
 
-static CHARACTERS: [u8; 83] = [
-    b'0', b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8', b'9', b'A', b'B', b'C', b'D', b'E', b'F',
-    b'G', b'H', b'I', b'J', b'K', b'L', b'M', b'N', b'O', b'P', b'Q', b'R', b'S', b'T', b'U', b'V',
-    b'W', b'X', b'Y', b'Z', b'a', b'b', b'c', b'd', b'e', b'f', b'g', b'h', b'i', b'j', b'k', b'l',
-    b'm', b'n', b'o', b'p', b'q', b'r', b's', b't', b'u', b'v', b'w', b'x', b'y', b'z', b'#', b'$',
-    b'%', b'*', b'+', b',', b'-', b'.', b':', b';', b'=', b'?', b'@', b'[', b']', b'^', b'_', b'{',
-    b'|', b'}', b'~',
-];
+include!(concat!(env!("OUT_DIR"), "/base83_lookup.rs"));
 
-pub fn encode(value: u32, length: u32) -> String {
-    let mut result = String::new();
-
+pub fn encode_into(value: u32, length: u32, s: &mut String) {
     for i in 1..=length {
         let digit: u32 = (value / u32::pow(83, length - i)) % 83;
-        result.push(CHARACTERS[digit as usize] as char);
+        s.push(CHARACTERS[digit as usize] as char);
     }
-
-    result
 }
 
 pub fn decode(str: &str) -> Result<u64, Error> {
@@ -28,10 +17,13 @@ pub fn decode(str: &str) -> Result<u64, Error> {
     let mut value = 0;
 
     for byte in str.as_bytes() {
-        let digit: usize = CHARACTERS
-            .iter()
-            .position(|r| r == byte)
-            .ok_or(Error::InvalidBase83(*byte))?;
+        if *byte as usize >= CHARACTERS_INV.len() {
+            return Err(Error::InvalidBase83(*byte));
+        }
+        let digit = CHARACTERS_INV[*byte as usize];
+        if digit == CHARACTERS_INV_INVALID {
+            return Err(Error::InvalidBase83(*byte));
+        }
         value = value * 83 + digit as u64;
     }
 
@@ -40,7 +32,13 @@ pub fn decode(str: &str) -> Result<u64, Error> {
 
 #[cfg(test)]
 mod tests {
-    use super::{decode, encode};
+    use super::{decode, encode_into};
+
+    fn encode(value: u32, length: u32) -> String {
+        let mut s = String::new();
+        encode_into(value, length, &mut s);
+        s
+    }
 
     #[test]
     fn encode83() {
@@ -52,6 +50,11 @@ mod tests {
     fn decode83() {
         let v = decode("~$").unwrap();
         assert_eq!(v, 6869);
+    }
+
+    #[test]
+    fn decode83_too_large() {
+        assert!(decode("€").is_err());
     }
 
     #[test]
