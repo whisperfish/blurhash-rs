@@ -183,7 +183,9 @@ pub fn decode_into(
         }
     }
 
-    let bytes_per_row = width * 4;
+    let colors: Vec<_> = colors.chunks(num_x).collect();
+
+    let bytes_per_row = width as usize * 4;
 
     let pi_over_height = PI / height as f32;
     let pi_over_width = PI / width as f32;
@@ -206,18 +208,31 @@ pub fn decode_into(
         }
     }
 
-    for y in 0..height {
-        for x in 0..width {
+    // Hint to the optimizer that the length of the slices is correct
+    assert!(height as usize * num_y == cos_j_pi_y_over_height.len());
+    assert!(width as usize * num_x == cos_i_pi_x_over_width.len());
+
+    for y in 0..height as usize {
+        let pixels = &mut pixels[y * bytes_per_row..][..bytes_per_row];
+
+        // More optimizer hints.
+        assert!(y * num_y + num_y <= cos_j_pi_y_over_height.len());
+
+        for x in 0..width as usize {
             let mut pixel = [0.; 3];
 
-            let cos_i_pi_x_over_width = &cos_i_pi_x_over_width[x as usize * num_x..][..num_x];
-            let cos_j_pi_y_over_height = &cos_j_pi_y_over_height[y as usize * num_y..][..num_y];
-            for j in 0..num_y {
-                let colors = &colors[j * num_x..][..num_x];
+            let cos_j_pi_y_over_height = &cos_j_pi_y_over_height[y * num_y..][..num_y];
+            let cos_i_pi_x_over_width = &cos_i_pi_x_over_width[x * num_x..][..num_x];
 
-                for i in 0..num_x {
-                    let basis = cos_i_pi_x_over_width[i] * cos_j_pi_y_over_height[j];
-                    let color = &colors[i];
+            assert_eq!(cos_j_pi_y_over_height.len(), colors.len());
+            assert_eq!(cos_j_pi_y_over_height.len(), num_y);
+
+            for (cos_j, colors) in cos_j_pi_y_over_height.iter().zip(colors.iter()) {
+                assert_eq!(cos_i_pi_x_over_width.len(), colors.len());
+                assert_eq!(cos_i_pi_x_over_width.len(), num_x);
+
+                for (cos_i, color) in cos_i_pi_x_over_width.iter().zip(colors.iter()) {
+                    let basis = cos_i * cos_j;
 
                     pixel[0] += color[0] * basis;
                     pixel[1] += color[1] * basis;
@@ -229,7 +244,7 @@ pub fn decode_into(
             let int_g = linear_to_srgb(pixel[1]);
             let int_b = linear_to_srgb(pixel[2]);
 
-            let pixels = &mut pixels[((4 * x + y * bytes_per_row) as usize)..][..4];
+            let pixels = &mut pixels[4 * x as usize..][..4];
 
             pixels[0] = int_r;
             pixels[1] = int_g;
