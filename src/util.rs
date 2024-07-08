@@ -16,10 +16,5 @@ pub fn srgb_to_linear(value: u8) -> f32 {
 }
 
 pub fn sign_pow(val: f32, exp: f32) -> f32 {
-    let t = f32::powf(val.abs(), exp);
-    if val < 0. {
-        -t
-    } else {
-        t
-    }
+    f32::copysign(f32::powf(val.abs(), exp), val)
 }
