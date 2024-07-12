@@ -370,7 +370,7 @@ mod tests {
     use super::*;
     use image::{save_buffer, ColorType::Rgba8};
     use image::{EncodableLayout, GenericImageView};
-    use proptest::proptest;
+    use proptest::prelude::*;
 
     #[test]
     fn decode_blurhash() {
@@ -456,6 +456,24 @@ mod tests {
         assert_eq!(bytes[1000..1005], [77, 210, 4, 80, 15]);
     }
 
+    fn base83_string(len: usize) -> impl Strategy<Value = String> {
+        let reg = format!("([A-Za-z0-9#$%*+,-.:;=?@\\[\\]^_{{|}}~]){{{len}}}");
+        proptest::string::string_regex(&reg).unwrap()
+    }
+
+    prop_compose! {
+        fn valid_blurhash()
+             (num_x in 1..10u32, num_y in 1..10u32)
+             (blurhash in base83_string(3 + 2 * num_x as usize * num_y as usize), num_x in Just(num_x), num_y in Just(num_y))
+                             -> String {
+            let mut blurhash_with_size = String::with_capacity(4 + 2 * num_x as usize * num_y as usize);
+            let size_flag = (num_x - 1) + (num_y - 1) * 9;
+            base83::encode_into(size_flag, 1, &mut blurhash_with_size);
+            blurhash_with_size.push_str(&blurhash);
+            blurhash_with_size
+        }
+    }
+
     proptest! {
         #[test]
         fn roundtrip_octocat(x_components in 1..10u32, y_components in 1..10u32, punch in 0.0..1.0f32) {
@@ -474,6 +492,17 @@ mod tests {
             punch in 0.0..1.0f32,
         ) {
             let _ = decode(&blurhash, width, height, punch);
+        }
+
+        #[test]
+        fn decode_valid_blurhash(
+            width in 10..100u32,
+            height in 10..100u32,
+            blurhash in valid_blurhash(),
+        ) {
+
+            let img = decode(&blurhash, width, height, 1.);
+            proptest::prop_assert!(img.is_ok(), "{}", img.unwrap_err());
         }
     }
 }
