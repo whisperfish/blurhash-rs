@@ -467,7 +467,12 @@ mod tests {
         }
 
         #[test]
-        fn decode_doesnt_panic(blurhash in "([A-Za-z0-9+/]{4}){2,}", width in 1..1000u32, height in 1..1000u32, punch in 0.0..1.0f32) {
+        fn decode_doesnt_panic(
+            blurhash in "([A-Za-z0-9+/]{4}){2,}",
+            width in 1..1000u32,
+            height in 1..1000u32,
+            punch in 0.0..1.0f32,
+        ) {
             let _ = decode(&blurhash, width, height, punch);
         }
     }
