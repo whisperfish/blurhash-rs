@@ -242,7 +242,7 @@ pub fn decode_into(
             let int_g = linear_to_srgb(pixel[1]);
             let int_b = linear_to_srgb(pixel[2]);
 
-            let pixels = &mut pixels[4 * x as usize..][..4];
+            let pixels = &mut pixels[4 * x..][..4];
 
             pixels[0] = int_r;
             pixels[1] = int_g;
