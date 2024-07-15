@@ -1,5 +1,25 @@
 use std::io::Write;
 
+const LINEAR_TO_SRGB_LOOKUP_SIZE: usize = 8192;
+
+fn linear_to_srgb(value: f32) -> u8 {
+    let v = value.clamp(0., 1.);
+    if v <= 0.003_130_8 {
+        (v * 12.92 * 255. + 0.5).round() as u8
+    } else {
+        ((1.055 * 255.) * f32::powf(v, 1. / 2.4) - (0.055 * 255. - 0.5)).round() as u8
+    }
+}
+
+fn generate_linear_to_srgb_lookup() -> [u8; LINEAR_TO_SRGB_LOOKUP_SIZE] {
+    let mut table = [0u8; LINEAR_TO_SRGB_LOOKUP_SIZE];
+    for i in 0..table.len() {
+        let float = i as f32 / (table.len() - 1) as f32;
+        table[i] = linear_to_srgb(float);
+    }
+    table
+}
+
 /// srgb 0-255 integer to linear 0.0-1.0 floating point conversion.
 pub fn srgb_to_linear(value: u8) -> f32 {
     let v = value as f32 / 255.;
@@ -19,8 +39,20 @@ fn generate_srgb_lookup() -> [f32; 256] {
 }
 
 fn write_srgb(f: &mut std::fs::File) {
-    let table = generate_srgb_lookup();
-    writeln!(f, "static SRGB_LOOKUP: [f32; 256] = {:?};", table).unwrap();
+    writeln!(
+        f,
+        "
+        static SRGB_LOOKUP: [f32; 256] = {:?};
+        #[cfg(feature = \"fast-linear-to-srgb\")]
+        const LINEAR_TO_SRGB_LOOKUP_SIZE: usize = {};
+        #[cfg(feature = \"fast-linear-to-srgb\")]
+        static LINEAR_TO_SRGB_LOOKUP: [u8; LINEAR_TO_SRGB_LOOKUP_SIZE] = {:?};
+        ",
+        generate_srgb_lookup(),
+        LINEAR_TO_SRGB_LOOKUP_SIZE,
+        generate_linear_to_srgb_lookup()
+    )
+    .unwrap();
 }
 
 fn write_base83(f: &mut std::fs::File) {
