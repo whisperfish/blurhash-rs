@@ -368,7 +368,6 @@ pub fn decode_pixbuf(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use image::{save_buffer, ColorType::Rgba8};
     use image::{EncodableLayout, GenericImageView};
 
     #[test]
@@ -378,7 +377,6 @@ mod tests {
 
         let blurhash = encode(4, 3, width, height, img.to_rgba8().as_bytes()).unwrap();
         let img = decode(&blurhash, width, height, 1.0).unwrap();
-        save_buffer("data/out.png", &img, width, height, Rgba8).unwrap();
 
         assert_eq!(img[0..5], [1, 1, 1, 255, 1]);
     }
@@ -399,7 +397,6 @@ mod tests {
         let (width, height) = img.dimensions();
         let blurhash = encode(4, 3, width, height, img.to_rgba8().as_bytes()).unwrap();
 
-        // assert_eq!(blurhash, "LFL4=pI8%foujXofRkWC.loyH?V{");
         assert_eq!(blurhash, "LNAdAqj[00aymkj[TKay9}ay-Sj[");
     }
 
@@ -439,7 +436,7 @@ mod tests {
     #[cfg(feature = "gdk-pixbuf")]
     fn decode_blurhash_pixbuf() {
         use std::convert::TryInto;
-        let img = gdk_pixbuf::Pixbuf::from_file("data/wikipedia_logo.svg").unwrap();
+        let img = gdk_pixbuf::Pixbuf::from_file("data/wikipedia_logo.png").unwrap();
 
         let blurhash = encode_pixbuf(4, 3, &img).unwrap();
         let img = decode_pixbuf(
@@ -450,8 +447,44 @@ mod tests {
         )
         .unwrap();
 
-        let bytes = img.save_to_bufferv("png", &[]).unwrap();
+        let target = image::open("data/wikipedia_logo_blurred.png").unwrap();
+        assert_image_data_approximately_equal(&img.read_pixel_bytes(), target.as_bytes())
+    }
 
-        assert_eq!(bytes[1000..1005], [77, 210, 4, 80, 15]);
+    #[cfg(feature = "gdk-pixbuf")]
+    fn assert_image_data_approximately_equal(result: &[u8], target: &[u8]) {
+        const MAX_AVERAGE_ERROR: usize = 1;
+        const MAX_PEAK_ERROR: usize = 8;
+
+        assert_eq!(
+            result.len(),
+            target.len(),
+            "images do not have the same shape: {} vs {}",
+            result.len(),
+            target.len()
+        );
+
+        let mut aggregated_error: usize = 0;
+        let mut peak_error = 0;
+        for (r, t) in result.iter().zip(target) {
+            let error = (*r as isize - *t as isize).abs() as usize;
+            aggregated_error += error;
+            peak_error = peak_error.max(error);
+        }
+
+        let average_error = aggregated_error / result.len();
+
+        assert!(
+            average_error <= MAX_AVERAGE_ERROR,
+            "images do not look similar. average error {} > {}",
+            average_error,
+            MAX_AVERAGE_ERROR
+        );
+        assert!(
+            peak_error <= MAX_PEAK_ERROR,
+            "images do not look similar. peak error {} > {}",
+            peak_error,
+            MAX_PEAK_ERROR,
+        );
     }
 }
