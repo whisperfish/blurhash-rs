@@ -369,6 +369,7 @@ pub fn decode_pixbuf(
 mod tests {
     use super::*;
     use image::{EncodableLayout, GenericImageView};
+    use proptest::prelude::*;
 
     #[test]
     fn decode_blurhash() {
@@ -486,5 +487,55 @@ mod tests {
             peak_error,
             MAX_PEAK_ERROR,
         );
+    }
+
+    fn base83_string(len: usize) -> impl Strategy<Value = String> {
+        let reg = format!("([A-Za-z0-9#$%*+,-.:;=?@\\[\\]^_{{|}}~]){{{len}}}");
+        proptest::string::string_regex(&reg).unwrap()
+    }
+
+    prop_compose! {
+        fn valid_blurhash()
+             (num_x in 1..10u32, num_y in 1..10u32)
+             (blurhash in base83_string(3 + 2 * num_x as usize * num_y as usize), num_x in Just(num_x), num_y in Just(num_y))
+                             -> String {
+            let mut blurhash_with_size = String::with_capacity(4 + 2 * num_x as usize * num_y as usize);
+            let size_flag = (num_x - 1) + (num_y - 1) * 9;
+            base83::encode_into(size_flag, 1, &mut blurhash_with_size);
+            blurhash_with_size.push_str(&blurhash);
+            blurhash_with_size
+        }
+    }
+
+    proptest! {
+        #[test]
+        fn roundtrip_octocat(x_components in 1..10u32, y_components in 1..10u32, punch in 0.0..1.0f32) {
+            let img = image::open("data/octocat.png").unwrap();
+            let (width, height) = img.dimensions();
+
+            let blurhash = encode(x_components, y_components, width, height, img.to_rgba8().as_bytes()).unwrap();
+            let _img = decode(&blurhash, width, height, punch).unwrap();
+        }
+
+        #[test]
+        fn decode_doesnt_panic(
+            blurhash in "([A-Za-z0-9+/]{4}){2,}",
+            width in 1..1000u32,
+            height in 1..1000u32,
+            punch in 0.0..1.0f32,
+        ) {
+            let _ = decode(&blurhash, width, height, punch);
+        }
+
+        #[test]
+        fn decode_valid_blurhash(
+            width in 10..100u32,
+            height in 10..100u32,
+            blurhash in valid_blurhash(),
+        ) {
+
+            let img = decode(&blurhash, width, height, 1.);
+            proptest::prop_assert!(img.is_ok(), "{}", img.unwrap_err());
+        }
     }
 }
