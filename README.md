@@ -14,7 +14,16 @@ Add `blurhash` to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-blurhash = "0.2.1"
+blurhash = "0.2.3"
+```
+
+By default, the `fast-linear-to-srgb` is enabled.
+This improves decoding performance by about 60%, but has a memory overhead of 8KB.
+If this overhead is problematic, you can disable it by instead specifying the following to your `Cargo.toml`:
+
+```toml
+[dependencies]
+blurhash = { version = "0.2.3", default-features = false }
 ```
 
 ### Encoding
