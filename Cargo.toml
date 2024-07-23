@@ -19,9 +19,10 @@ image = ">= 0.23, <= 0.25"
 criterion = "0.5"
 
 [features]
-default = []
+default = ["fast-linear-to-srgb"]
 image = [ "dep:image" ]
 gdk-pixbuf = [ "dep:gdk-pixbuf" ]
+fast-linear-to-srgb = []
 
 [[bench]]
 name = "decode"
