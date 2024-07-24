@@ -49,11 +49,7 @@ extern crate alloc;
 use alloc::{string::String, vec::Vec};
 
 #[cfg(not(feature = "std"))]
-#[allow(unused_imports)]
 use num_traits::real::Real;
-
-#[cfg(feature = "wasm")]
-mod wasm;
 
 pub use error::Error;
 
