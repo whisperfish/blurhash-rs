@@ -21,7 +21,7 @@
 //! let pixels = decode("LBAdAqof00WCqZj[PDay0.WB}pof", 50, 50, 1.0);
 //! ```
 //!
-//! To decode into an `ImageBuffer`, add the `image` feature flag, then do:
+//! Blurhash-rs supports directly decoding into an `ImageBuffer` of the `image` crate. Add the `image` feature flag, then do:
 //!
 //! ```no_run
 //! use blurhash::decode_image;
