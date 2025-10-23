@@ -29,17 +29,6 @@
 //! let image_buffer = decode_image(blurhash, width, height, 1.0).unwrap();
 //! ```
 //!
-//! If you'd like to convert this image to a base64 `png`, you can add the `base64` and `image` crates, then do:
-//!
-//! ```no_run
-//! use base64::{engine::general_purpose, Engine as _};
-//! use std::io::Cursor;
-//!
-//! let mut bytes: Vec<u8> = Vec::new();
-//! image_buffer.write_to(&mut Cursor::new(&mut bytes), image::ImageOutputFormat::Png).unwrap();
-//!
-//! let b64_png = general_purpose::STANDARD.encode(bytes);
-//! ```
 //! [1]: https://github.com/woltapp/blurhash
 mod ac;
 mod base83;
