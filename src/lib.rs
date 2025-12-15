@@ -20,6 +20,15 @@
 //!
 //! let pixels = decode("LBAdAqof00WCqZj[PDay0.WB}pof", 50, 50, 1.0);
 //! ```
+//!
+//! Blurhash-rs supports directly decoding into an `ImageBuffer` of the `image` crate. Add the `image` feature flag, then do:
+//!
+//! ```no_run
+//! use blurhash::decode_image;
+//!
+//! let image_buffer = decode_image(blurhash, width, height, 1.0).unwrap();
+//! ```
+//!
 //! [1]: https://github.com/woltapp/blurhash
 mod ac;
 mod base83;

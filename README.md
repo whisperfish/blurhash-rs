@@ -27,6 +27,7 @@ blurhash = { version = "0.2.3", default-features = false }
 ```
 
 ### Encoding
+
 ```rust
 use blurhash::encode;
 use image::GenericImageView;
@@ -40,15 +41,24 @@ fn main() {
 ```
 
 ### Decoding
+
 ```rust
 use blurhash::decode;
 
 let pixels = decode("LBAdAqof00WCqZj[PDay0.WB}pof", 50, 50, 1.0);
 ```
 
+Blurhash-rs supports directly decoding into an `ImageBuffer` of the `image` crate. Add the `image` feature flag, then do:
+
+```rust
+use blurhash::decode_image;
+
+let image_buffer = decode_image(blurhash, width, height, 1.0).unwrap();
+```
+
 ## Licence
 
 Licensed under either of
 
-* Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
-* MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+- Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
