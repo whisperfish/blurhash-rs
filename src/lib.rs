@@ -26,6 +26,9 @@
 //! ```no_run
 //! use blurhash::decode_image;
 //!
+//! let blurhash = "LBAdAqof00WCqZj[PDay0.WB}pof";
+//! let width = 50;
+//! let height = 50;
 //! let image_buffer = decode_image(blurhash, width, height, 1.0).unwrap();
 //! ```
 //!
