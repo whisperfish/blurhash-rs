@@ -45,6 +45,9 @@ jobs:
           command: build
           args: --all-targets
 
+      - name: Setup glib
+        run: sudo apt install libglib2.0-dev libgdk-pixbuf-2.0-dev -y
+
       - name: Run tests with default features
         uses: actions-rs/cargo@v1
         if: ${{ !matrix.coverage }}
