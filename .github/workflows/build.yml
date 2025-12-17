@@ -23,7 +23,7 @@ jobs:
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - run: cd blurhash-rs-wasm
-      - run: cargo test
+      - run: cargo test --all-features
       - run: wasm-pack test --headless --chrome -- --package blurhash-rs-wasm
       - run: wasm-pack test --headless --firefox -- --package blurhash-rs-wasm
 
