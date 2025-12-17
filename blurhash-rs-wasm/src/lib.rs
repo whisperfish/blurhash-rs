@@ -6,16 +6,6 @@ use wasm_bindgen::prelude::*;
 extern crate alloc;
 
 #[wasm_bindgen]
-extern "C" {
-    fn alert(s: &str);
-}
-
-#[wasm_bindgen]
-pub fn greet() {
-    alert("Hello, blurhash-rs-wasm!");
-}
-
-#[wasm_bindgen]
 pub fn init() {
     utils::set_panic_hook();
 }
