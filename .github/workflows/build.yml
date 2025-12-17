@@ -86,34 +86,34 @@ jobs:
         if: ${{ !matrix.coverage && (matrix.features == '' || matrix.features == 'std')  }}
         with:
           command: test
-          args: --all-targets --no-fail-fast
+          args: --workspace --all-targets --no-fail-fast
 
       - name: Run tests with all features
         uses: actions-rs/cargo@v1
         if: ${{ !matrix.coverage && (matrix.features == '' || matrix.features == 'std') }}
         with:
           command: test
-          args: --all-targets --no-fail-fast --all-features
+          args: --workspace --all-targets --no-fail-fast --all-features
 
       - name: "Run tests with features: ${{ matrix.features }}"
         uses: actions-rs/cargo@v1
         if: ${{ !matrix.coverage }}
         with:
           command: test
-          args: --all-targets --no-fail-fast --no-default-features --features "${{ matrix.features }}"
+          args: --workspace --all-targets --no-fail-fast --no-default-features --features "${{ matrix.features }}"
 
       - name: Run doc tests
         uses: actions-rs/cargo@v1
         if: ${{ !matrix.coverage }}
         with:
           command: test
-          args: --doc --no-fail-fast --all-features
+          args: --workspace --doc --no-fail-fast --all-features
 
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
 
       - name: Run tests with coverage
-        run: cargo llvm-cov --all-features --all-targets --lcov --output-path lcov.info
+        run: cargo llvm-cov --workspace --all-features --all-targets --lcov --output-path lcov.info
         if: ${{ matrix.coverage }}
 
       - name: Upload coverage reports to Codecov with GitHub Action
