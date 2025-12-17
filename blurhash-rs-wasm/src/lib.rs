@@ -15,6 +15,11 @@ pub fn greet() {
     alert("Hello, blurhash-rs-wasm!");
 }
 
+#[wasm_bindgen]
+pub fn init() {
+    utils::set_panic_hook();
+}
+
 use alloc::{
     string::{String, ToString},
     vec::Vec,
